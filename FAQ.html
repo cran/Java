@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>FAQ for R-Java Interface</title>
+<link rel=stylesheet href="OmegaTech.css" >
+</head>
+
+<body>
+<h1>FAQ for the R-Java Interface</h1>
+
+<ol>
+  <li><a href="#StartingJVM">Starting the Java Virtual Machine</a>
+  <li><a href="#Performance">Performance</a>
+  <li><a href="#Methods">Method Identification</a>
+</ol>
+
+
+<h2><a name="StartingJVM">Starting the Java Virtual Machine</h2>
+<dl>
+  <dt>
+  <li> When I load the shared library (Java.so)
+       I get errors about not being able to load a shared
+       library or undefined symbols. What's the problem?
+  <dd> Most likely, you do not have the environment/shell
+      variable <code>LD_LIBRARY_PATH</code> set correctly.
+      Source one of the <code>RJava.csh</code> or <code>RJava.bash</code> scripts
+      that are created during the configuration of the R-Java package.
+      To find them, run the R command
+<pre>
+   system.file("scripts/RJava.csh", pkg="Java") 
+</pre>
+      The first is for use within C shells (csh and tcsh)
+      and the latter for use with the Bourne shell (sh, bash).
+      This must be done before starting R.
+<p>
+      These scripts append the appropriate directories to one's
+      <code>LD_LIBRARY_PATH</code> variable and makes .
+      the Java libraries and support library in the R package
+      for Java available to the dynamic loader.
+
+      
+  
+  <dt>
+  <li> When I call <code>.JavaInit()</code>, the prompt never
+      returns. Any solution?
+  <dd> We have seen this on Linux with IBM's JDK1.3.
+       The problem is that when loading the shared library (Java.so)
+      one must specify FALSE as the value for <code>local</code>.
+       That is
+      <pre>
+        dyn.load("Java.so", local=FALSE)
+      </pre>
+      The automatic configuration attempts to get this correct
+      and put the appropriate  call in <code>.First.lib</code>.
+
+  <dt>
+  <li> On Solaris, when I initialize the Java Virtual Machine,
+      I get a paragraph about needing to apply some patches.
+      Do I really have to install these?
+  <dd> The solution answer again lies with the way
+      <code>dyn.load()</code> is called. Make certain that
+       the <code>Java.so</code> shared library is loaded
+      with the argument <code>local=FALSE</code>.
+
+
+  <dt>
+  <li> When I try to do anything that involves the
+       class <code>RForeignReference</code>, Java
+       complains about not being able to load a library named
+       <code>Java.so</code> and prints a huge call-stack trace.
+  <dd>
+       The problem is due to one of two things.
+       Perhaps you have not set your <code>LD_LIBRARY_PATH</code>
+       variable correctly.<br>
+       More likely however is that when you installed the package,
+       you did not give the R INSTALL command the -c (or --clean)
+       argument. This is necessary as it tidies the installation up
+       after everything is compiled and made available to R.
+       This creates a symbolic link in the
+         <code>Java/libs</code> directory that connects Java.so expected by R
+       to <code>libJava.so</code> expected by  the Java virtual
+      machine.
+       In other words, this issues the command
+      <pre>
+ln -s Java.so libJava.so      
+      </pre>
+      in the <code>Java/libs</code> directory.
+      A script - <code>cleanup</code> -
+      will do this for you. It is located in the
+      <code>Java/scripts</code> directory where the library was installed.
+    
+
+</dl>
+
+
+<h2><a name="Performance">Performance</h2>
+<dl>
+  <dt>
+  <li> Why is the first call to <code>.Java()</code> or
+      <code>.JavaConstructor</code> so slow? 
+  <dd> Because, the default setup for the Omegahat interpreter
+      allows the user to specify partially qualified class names.
+      To do this, the Omegahat interpreter must read every
+      element in the classpath and construct a list of all the classes
+      in all the sub-directories of those elements.
+      This takes time!
+      <p>
+      This lengthy class list construction can be reduced (or
+      eliminated).
+       Firstly, use  fully-qualified  class names.
+      This makes the code more readable, but it is tedious.
+<br>
+      An alternative is to tell Omegahat which classpath elements
+      for which it should construct the class lists.
+      This list is specified via the JVM property
+      <code>OmegahatClassLists</code>
+<pre>
+ javaConfig(OmegahatClassLists="./myclasses:/home/me/Java/classes.jar")
+</pre>
+      See <a href="http://www.omegahat.org/Howto/omegahat.html">The
+      Omegahat Howto</a>.
+      
+</dl>
+
+<h2><a name="Methods">Method Identification</a></h2>
+<dl>
+  <dt>
+  <li> <font class="question">Why do I get anonymous references that
+      have class MethodAlias?</font>
+  <dd> This means that the <code>.Java</code> call couldn't resolve a
+      real Java method, but got one that had the same name and number
+      of arguments. One of the most common causes for this in R
+      is when one specifies an integer constant (e.g. 0) but it is
+      passed to Java as a double/numeric. For example
+<pre>
+ v <- .JavaConstructor("util.Vector", 3)
+</pre>
+      The three here is actually of more numeric.
+<p>
+     
+      This behaviour is part of R and S3
+      and unfortunately we are stuck with it. (A lot of the R code
+      (especially Fortran associated) breaks if this is changed. It
+      does not happen in S4.)
+
+  
+</dl>
+
+<hr>
+<address></address>
+<!-- hhmts start -->
+Last modified: Mon Jul 24 20:15:38 EDT 2000
+<!-- hhmts end -->
+</body> </html>

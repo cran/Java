@@ -1,0 +1,344 @@
+
+dnl This is the configuration for the R-Java interface.
+dnl This relies on having a suitable installation of the 
+dnl Omegahat classes.
+
+dnl Need to allow the user to specify where the Omegahat 
+dnl classes and 3rd party Jar files are located.
+dnl Also, generate a suitable value for .javaConfig.
+
+AC_INIT(DESCRIPTION)
+
+ # the current directory which is Java/
+ # so that we can insert this into the 
+ # makefiles in the different sub-directories
+ # and have them include a top-level shared Makevars.
+
+TOP=`pwd`
+AC_SUBST(TOP)
+
+
+dnl Older versions of R (i.e. not the 1.2.0 development 
+dnl version) don't have the change to INSTALL that exports
+dnl the R_PACKAGE_DIR. So if it isn't set, we can't configure
+dnl things such as .javaConfig to locate the Jar files, etc.
+dnl In order to handle this, we make the user specify where
+dnl the package is being installed. This includes the /Java
+dnl appended to the end.
+
+if test -z "${R_PACKAGE_DIR}" ; then
+  echo "This package needs to know into which directory"
+  echo "it is being installed. Your version of R does not"
+  echo "provide this information to the configuration script."
+  echo "To run this configuration, set the value of the"
+  echo "environment variable"
+  echo "             R_PACKAGE_DIR "
+  echo "to where the package will be installed."
+  echo "This value is something like"
+  echo "    \$R_HOME/library/Java"
+  echo ""
+  echo "See the README file for more details."
+  echo "Note that version 1.2.0 (now in development) does provide"
+  echo "this information automatically."
+  exit 1
+fi
+
+
+dnl find the java executable (java) and JAVA_HOME
+dnl If the user has it set via the environment variable,
+dnl we use theirs (with appropriate checks).
+
+if test -z "${JAVA_HOME}" ; then
+
+  dnl So the user didn't give us a JAVA_HOME and we have to find it.
+  dnl We look for the java executable and ask it where JAVA_HOME is.
+  dnl we look for java in likely places, allowing the user's search path
+  dnl to preceed any of these usual spots.
+
+JAVA_LOCATIONS=${PATH}:/usr/java/bin:/usr/jdk/bin:/usr/local/src/IBMJava2-13/bin:usr/jdk1.2.2/bin:/usr/jdk1.2/bin:/usr/local/jdk1.2/bin:/usr/local/java/bin:/usr/local/jdk1.2.2/bin:/usr/local/src/jdk1.2.2/bin
+
+AC_PATH_PROGS(JAVA,java,,${JAVA_LOCATIONS})
+
+    dnl did we find it? If so, compute JAVA_HOME.
+ if test -n "${JAVA}" ; then
+   JAVA_HOME=`${JAVA} vendor -h`
+ fi
+
+else
+   dnl check that the java executable is available in the bin/ directory
+   dnl of the user-specified ${JAVA_HOME} directory.
+ AC_PATH_PROGS(JAVA,java,,${JAVA_HOME}/bin)  
+fi  
+dnl End of test if user gave us JAVA_HOME
+
+
+dnl Now check the version of Java
+
+if test -n "${JAVA}" ; then
+ echo "Java VM ${JAVA}"
+else
+ echo "Cannot find Java. 
+Please set your path to include the directory in which the java executable resides,
+or set the environment variable JAVA_HOME before this configure script is run."
+ exit 1;
+fi
+
+
+JAVA_MAJOR_VERSION=`${JAVA} vendor -vv`
+if test ${JAVA_MAJOR_VERSION} -lt 2 ; then
+ echo "Need Java 1.2 virtual machine to run Omegahat effectively."
+ echo "${JAVA} is not 1.2 but `${JAVA} vendor java.version`"
+ exit 1;
+fi
+
+
+dnl JAVAC="${JAVA_HOME}/bin/javac"
+dnl JAVAH="${JAVA_HOME}/bin/javah"
+
+dnl We don't actually need the Java compiler.
+dnl AC_PATH_PROGS(JAVAC,javac,,${JAVA_HOME}/bin)  
+AC_PATH_PROGS(JAVAH,javah,,${JAVA_HOME}/bin)  
+
+
+ dnl Now, compute who built this particular JVM (i.e. Sun, IBM, 
+ dnl Blackdown, etc). This helps us tell what libraries to link against, etc. 
+VENDOR=`${JAVA} vendor -v`
+OSNAME=`uname`
+DYN_LOAD_LOCAL=TRUE
+
+if test "${VENDOR}" = "IBM" ; then
+    # For IBM2-13 JDK
+  JAVA_LIBS="-ljvm"
+  DYN_LOAD_LOCAL=FALSE
+elif test "${VENDOR}" = "Sun" ; then
+  JAVA_LIBS="-ljvm" ;
+  if test "${OSNAME}" = "SunOS" ; then
+    DYN_LOAD_LOCAL=FALSE
+  fi
+dnl -lthread for Solaris
+dnl -lhpi
+else 
+ echo "Sorry. We can currently only configure this package for IBM, Blackdown or Sun's Java implementation"
+ exit 1;
+fi
+
+dnl What one needs for IBM.
+dnl JNI_LIB_DIRS="${JAVA_HOME}/jre/bin/classic"
+
+dnl For the Blackdown JDK.
+dnl JNI_LIB_DIRS="${JAVA_HOME}/jre/lib/i386 ${JAVA_HOME}/jre/lib/i386/native_threads ${JAVA_HOME}/jre/lib/i386/classic"
+
+dnl JNI_LIB_DIRS=`${JAVA} vendor -l`
+dnl JDK_PLATFORM=`${JAVA} vendor -o`
+
+dnl We use the jniBashParameters class to compute the JNI_LIBS, JDK_PLATFORM and JDK_HARDWARE
+
+(LD_LIBRARY_PATH= ; export LD_LIBRARY_PATH; ${JAVA} -DJavaHome=${JAVA_HOME} jniBashParameters config.jni)
+   # now read the results from the jniBashParameters output
+. config.jni 
+
+JNI_LIB_DIRS=${JNI_LIBS}
+
+AC_SUBST(JAVA_LIBS)
+
+dnl Need to find where jni_md.h is located.
+dnl For IBM, it is in $JAVA_HOME/include
+dnl For Sun, it is in $JAVA_HOME
+
+JNI_INCLUDES="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/${JDK_PLATFORM}"
+
+RS_DEFINES="-D_R_ -DUSER_OBJECT_='SEXP'"
+
+
+
+dnl Not used at the moment! Don't tell anyone about it :-)
+dnl The idea is to treate R_HOME/etc/Makeconf as a 
+dnl Java properties file and query its contents.
+if test -n "${USE_R_CONFIGURATION}" ; then 
+
+ if test -f ${R_HOME}/etc/Makeconf  ; then
+    ${JAVA} Rconfig ${R_HOME}/etc/Makeconf > config.R
+    . ./config.R
+    echo "CC from R configuration: ${CC}"
+ fi
+
+fi
+
+dnl Get the C++ and C compilers. 
+dnl Do we need C++?
+if test -z "${CXX}" ; then
+  AC_PROG_CXX 
+fi
+if test -z "${CC}" ; then
+  AC_PROG_CC 
+fi
+
+R_LINKER=${CC}
+AC_SUBST(R_LINKER)
+
+dnl The names of some of the variables in R_HOME/etc/Makeconf
+dnl changed in the development version 1.2.0 of R.
+dnl To allow users with a 1.1.* release use this easily, we 
+dnl make the necessary substitutions here.
+
+NEW_SHLIB_LDFLAGS=`grep -c SHLIB_LDFLAGS ${R_HOME}/etc/Makeconf`
+if test $NEW_SHLIB_LDFLAGS -eq 0; then
+ REPLACE_SHLIB="SHLIB_LDFLAGS=\${SHLIBLDFLAGS}"
+else
+ REPLACE_SHLIB=
+fi
+AC_SUBST(REPLACE_SHLIB)
+
+
+RFLAGS="${RS_DEFINES} -I${R_HOME}/include -I${R_HOME}/include/R_ext"
+
+LOCAL_INCLUDES="-I${TOP}/src/RSJava  -I. -I${TOP}/inst/include ${JAVA_DEFINES}"
+CFLAGS="${CFLAGS} ${RFLAGS} ${LOCAL_INCLUDES} ${JNI_INCLUDES}"
+
+
+AC_ARG_ENABLE(debug,Enable debugging/diagnostic messages from the C code,
+               echo "Debugging on" ; R_DEBUG="ok")
+
+LIB_CMD="-L${TOP}/inst/libs"
+
+
+for i in ${JNI_LIB_DIRS} ${R_PACKAGE_DIR}/libs ; do
+  LIB_CMD="${LIB_CMD} -L$i"
+done
+
+
+dnl Note the space at the end of this. -R has no space.
+dnl LINKER_LIB_PATH_PREFIX="-Xlinker --rpath -Xlinker "
+dnl for Solaris and other GCCs
+dnl LINKER_LIB_PATH_PREFIX="-R"
+
+
+dnl The following does not work correctly. The R_PROG_CC_FLAG
+dnl seems to ignore the `unrecognized option' error from gcc.
+dnl R_PROG_CC_FLAG(-R,LINKER_LIB_PATH_PREFIX="-R")
+dnl if test -z "${LINKER_LIB_PATH_PREFIX}" ; then  
+dnl   R_PROG_CC_FLAG(-Xlinker --rpath,LINKER_LIB_PATH_PREFIX="-Xlinker -rpath")
+dnl fi
+
+
+dnl Even with the -R or -Xlinker flag activated, we still have
+dnl to set the LD_LIBRARY_PATH to get libraries that are not
+dnl explicitly listed in the link command for our libraries.
+dnl Hence, don't bother with this!
+
+if test -n "${USE_RUNTIME_LINKER_PATH}" ; then
+ if test "${GCC}" = "yes" ; then
+   LINKER_LIB_PATH_PREFIX="-Xlinker --rpath -Xlinker " 
+ else
+  LINKER_LIB_PATH_PREFIX="-R"
+ fi
+
+fi
+
+if test -n "${LINKER_LIB_PATH_PREFIX}" ; then
+ echo "Using run-time load path flag ${LINKER_LIB_PATH_PREFIX}"
+fi
+
+if test -n "${LINKER_LIB_PATH_PREFIX}" ; then
+dnl  LINKER_LIB_PATH_PREFIX="-Xlinker --rpath -Xlinker "
+  echo "LINKER Runtime Prefix: ${LINKER_LIB_PATH_PREFIX}"
+  for i in ${JNI_LIB_DIRS} ${R_PACKAGE_DIR}/libs ; do
+     LIB_CMD="${LIB_CMD} ${LINKER_LIB_PATH_PREFIX}$i"
+  done
+fi
+
+
+PKG_CPPFLAGS="${RFLAGS} ${LOCAL_INCLUDES} -IRSJava ${JNI_INCLUDES}"
+PKG_LIBS="${LIB_CMD} -lRSNativeJava ${JAVA_LIBS} "
+
+
+dnl If the user enabled debugging (--enable-debug),
+dnl then we add the -DLDEBUG=1 pre-processor
+dnl to the different compiler flags.
+dnl Note that the C files currently have the line numbering information
+dnl from their noweb originals. To see the code, obtain these and use
+dnl gdb's directory command.
+
+if test -n "$R_DEBUG" ; then
+ PKG_CPPFLAGS="$PKG_CPPFLAGS -DLDEBUG=1"
+ PKG_LIBS="${PKG_LIBS} -g"
+ CFLAGS="$CFLAGS -DLDEBUG=1"
+ LDFLAGS="${LDFLAGS} -g"
+fi
+
+dnl Must find out where the omegahat and 3rd party classes 
+dnl reside.
+
+dnl These are used in creating javaConfig.R in the 
+dnl R directory of the package (copied from Src/javaConfig.R.in here).
+dnl No longer needed: R_LIBRARY_LIB_DIR=${R_PACKAGE_DIR}/libs
+
+
+ANTLR=${ANTLR-"${R_PACKAGE_DIR}/org/omegahat/Jars/antlr.jar"}
+JAS=${JAS-"${R_PACKAGE_DIR}/org/omegahat/Jars/jas.jar"}
+JHELP=${JHELP-"${R_PACKAGE_DIR}/org/omegahat/Jars/jhall.jar"}
+
+
+OMEGA_CLASSPATH_EL=${R_PACKAGE_DIR}/org/omegahat/Jars/Environment.jar
+
+
+AC_SUBST(ANTLR)
+AC_SUBST(JAS)
+AC_SUBST(JHELP)
+AC_SUBST(OMEGA_CLASSPATH_EL)
+
+dnl Export all the symbols used in the different .in files.
+
+AC_SUBST(DYN_LOAD_LOCAL)
+AC_SUBST(PKG_CPPFLAGS)
+AC_SUBST(PKG_LIBS)
+AC_SUBST(JAVAC)
+AC_SUBST(JAVA)
+AC_SUBST(JAVAH)
+AC_SUBST(JAVA_HOME)
+AC_SUBST(RS_DEFINES)
+AC_SUBST(JNI_LIB_DIRS)
+AC_SUBST(LDFLAGS)
+AC_SUBST(LIB_CMD)
+AC_SUBST(R_LIBRARY_LIB_DIR)
+AC_SUBST(R_PACKAGE_DIR)
+
+LD_PATH=`echo "${R_PACKAGE_DIR}/libs ${JNI_LIB_DIRS}" | sed -e 's/ /:/g'`
+AC_SUBST(LD_PATH)
+
+
+AC_OUTPUT(Makevars src/Makevars src/RSJava/Makefile Makefile_rules inst/scripts/RJava.bsh inst/scripts/RJava.csh R/javaConfig.R R/zzz.R cleanup)
+
+chmod +x cleanup
+
+echo "Copying the cleanup script to the scripts/ directory"
+cp cleanup inst/scripts
+
+# Now build the sub-libraries and also the .h files from the Java
+# classes that are used in the JNI from Java.
+
+cd src/RSJava
+echo "Building libRSNativeJava.so in `pwd`"
+make libInstall
+
+cd .. 
+
+echo "Generating JNI header files from Java classes."
+echo "   RForeignReference & RManualFunctionActionListener"
+ 
+$JAVAH -classpath ${TOP}/inst -o RForeignReference.h org.omegahat.R.Java.RForeignReference
+
+$JAVAH -classpath ${TOP}/inst -o RManualFunctionActionListener.h org.omegahat.R.Java.RManualFunctionActionListener
+
+
+echo "*************"
+echo "Warning:"
+echo "    At present, to use the library you must set the "
+echo "    LD_LIBRARY_PATH environment variable"
+echo "    to"
+echo "      ${LD_PATH}" 
+echo "    or use one of the RJava.bsh or RJava.csh scripts"
+echo "*************"
+
+
+

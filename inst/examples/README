@@ -1,0 +1,21 @@
+This is a collection of R scripts used both to illustrate and test
+some of the features of the R-Omegahat/Java interface.
+
+Some of the scripts reference classes that are not, by default,
+in the Java classpath when the JVM is initialized from within
+R. These classes can be found in the jar (Java archive) file 
+     org/omegahat/Jars/ROmegahatExamples.jar
+within the R package installation.
+Use the R command
+      system.file("org/omegahat/Jars/ROmegahatExamples.jar")
+to find out its full path. Then include this in the classpath 
+by setting the environment variable CLASSPATH to include this
+element and restart R. Alternatively,  pass the location of the
+jar file via the classPath argument of .JavaInit() when initializing
+the JVM.
+
+(One can also use Omegahat's ability to dynamically add classes
+to the classpath of a running session.
+  .Java(.Java("__Evaluator", "localClasses"),"add",
+                 system.file("org/omegahat/Jars/ROmegahatExamples.jar"))
+)

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# need to have a libJava.so so that the RForeignReference
+# class can do a System.loadLibrary() to get the 
+# native eval() method for that class.
+
+echo "Creating the symbolic link for libJava.so in @R_PACKAGE_DIR@/libs/"
+
+cd @R_PACKAGE_DIR@/libs/
+if test ! -f libJava.so ; then
+  ln -s Java.so libJava.so
+fi

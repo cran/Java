@@ -1,0 +1,19 @@
+.First.lib <-
+function(libname, pkgname) {
+
+  # If we are not using a version of R with the updates
+  # to library.dynam to pass additional arguments to dyn.load
+  # then we load the library before calling library.dynam
+  # (Note that we want call it anyway just to make certain
+  #  it knows the library is loaded.)
+ if(is.na(match("...", names(formals(library.dynam)))))
+   dyn.load(system.file("libs/Java.so", pkg="Java"), local=@DYN_LOAD_LOCAL@)
+
+  # load the library!
+ library.dynam("Java", pkgname, libname, local=@DYN_LOAD_LOCAL@)
+
+  # Create a new foreign reference handler that 
+  # manages the exporting of R objects to Java
+  # and register it with the internal code.
+ setJavaHandler(javaHandlerGenerator())
+}

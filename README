@@ -1,0 +1,80 @@
+This is an R package that allows users to create Java objects, invoke
+their methods and execute Omegahat expressions from the R language.
+This uses the embedded Omegahat interpreter to provide the Java
+access.
+
+
+Installation:
+============
+To install this R package, you can execute the command
+  R INSTALL Java_1.0.tar.gz
+or
+  R INSTALL Java
+
+The configure script attempts to locate the necessary tools,
+libraries, etc. on your system. It finds the Java installation
+in the following way.
+  a) if you set the environment variable JAVA_HOME, it uses this
+   to locate the java executable as ${JAVA_HOME}/bin/java,
+or  
+  b) if searches through the shell's path to find java and takes
+    the first one.
+
+This requires Java 1.2, and also works for Java 1.3.  Currently, this is
+known to work for the 
+ a) JDK 1.2 and 1.3 from Blackdown for Linux (http://www.blackdown.org),
+ b) JDK 1.2 and 1.3 from Sun for Solaris (SunOS 5.6 and 5.7). 
+ c) JDK 1.3 from IBM for Linux (http://www.ibm.com/java/jdk)
+
+In the near future, we will attempt to support this on Windows.
+These are the only JDK implementations we have tried at this point.
+Please let us know if you have success or problems with other implementations and 
+other platforms.  Send mail to omega-devel@www.omegahat.org.
+
+We have encountered problems (i.e. crashes) under Blackdown's JDK1.2
+for Linux when the graphics thread is created (i.e. when we create a
+GUI).  This does not appear to happen under Solaris (JDK 1.3) or with
+the IBM JDK 1.3.
+
+
+Check:
+=====
+The R CMD check is conceptually at odds with an inter-system
+interface such as this. First of all, one has to configure 
+and initialize the JVM before running any of the examples. 
+Secondly, the Java classpath for the examples may be different
+than for regular use. And finally, some of the examples are 
+interactive in the form a GUI and will not return control
+until the user clicks on a button.
+
+Thus, don't run R CMD check (unless you have the appropriate
+startup file that initializes the JVM approriately.)
+
+
+Documentation:
+=============
+The documentation for this package is very much a work in progress.
+There are help files for each of the functions.
+There is also a collection of documents that are installed in the
+Docs/ directory of the package. As the documentation evolves,
+updates will be available from
+    http://www.omegahat.org/RSJava
+Example R scripts are installed in the examples/ directory.
+
+
+Bugs:
+=====
+Please report bugs to the omega-bugs@www.omegahat.org
+list or use the Web-based bug reporting form at 
+  http://www.omegahat.org/omegahat-bugs
+
+
+Future plans:
+============
+The underlying Omegahat mechanism has a smart mechanism for allowing R
+functions and closures to implement Java interface classes. It does
+this by dynamically compiling and loading Java classes that make
+callbacks to the R engine.  As more people use this package and the
+need for conversion are understood, this automatic conversion
+mechanism will be activated.
+

@@ -1,0 +1,28 @@
+TOP=@TOP@
+
+LIB=libRSNativeJava.so
+lib: dir $(LIB)
+
+include $(R_HOME)/etc/Makeconf
+include $(TOP)/Makevars
+
+OBJ=\
+ CtoJava.o \
+ ErrorHandling.o \
+ ManagerInterfaceUtils.o \
+ References.o \
+ JNIUtils.o
+
+HEADERS=\
+  CtoJava.h ErrorHandling.h JNIUtils.h ManagerInterfaceUtils.h References.h
+
+$(LIB): $(OBJ)
+
+dir:
+	if  test ! -d ${R_PACKAGE_DIR}/libs ; then \
+	    mkdir $(R_PACKAGE_DIR)/libs ; \
+	fi
+
+LOCAL_LIBS= $(JNI_LIB_DIRS:%=-L%) @JAVA_LIBS@ @LIB_CMD@
+
+include $(TOP)/Makefile_rules

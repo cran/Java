@@ -1,0 +1,15 @@
+.javaConfig <- list(
+classPath = c(
+"@OMEGA_CLASSPATH_EL@",
+"@R_PACKAGE_DIR@/org/..",
+"@ANTLR@",
+"@JAS@",
+"@JHELP@"
+),
+properties=c(EmbeddedInR="true",
+             InterfaceManagerClass="org/omegahat/Interfaces/NativeInterface/OmegaInterfaceManager",
+             ForeignReferenceBaseClass="org/omegahat/R/Java/RForeignReference",
+             "java.compiler"="NONE"
+            ),
+libraryPath=c("@R_PACKAGE_DIR@/libs")
+)

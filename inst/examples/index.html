@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>The R &amp; S - Java Interface Examples</title>
+<link rel=stylesheet href="../OmegaTech.css" >
+</head>
+
+<body>
+<h1>The R &amp; S - Java Interface Examples</h1>
+
+<dl>
+
+ <dt>
+     <li><a href="DynamicCompile.R">DynamicCompile.R</a>
+  <dd> This shows how one can dynamically compile a Java
+      class that implements a Java interface by defining
+      each of the methods in that interface to be calls
+      to the corresponding R function and exported R object.
+ <dt>
+     <li><a href="DynamicButtonCallback.R">DynamicButtonCallback.R</a>
+  <dd>	This example illustrates the use of the dynamic compilation
+      mechanism in the canonical example of using an R function
+      as an action listener for a Swing JButton.
+      
+ <dt>
+     <li><a href="StatData.R">StatData.R</a>
+  <dd>	 Uses the Omegahat class <a
+      href="http://www.omegahat.org/api/org/omegahat/S/Java/Examples/StatDataURL.html">StatDataURL</a>
+      to read the contents of a URL line-by-line and return them as an
+      R character vector.
+ <dt>
+     <li><a href="button.R">button.R</a>
+  <dd>	 Uses an R closure to respond to the user clicking
+       on a Java button, and illustrates the implicit conversion
+      of an R object to a foreign reference and
+      the use of the
+      <code>.sigs</code> argument to convert an R reference
+      to a particular Java class. 
+ <dt>
+     <li><a href="buttonCallback.R">buttonCallback.R</a>
+  <dd>	 Another example of an R function used to
+      respond to a user event from a button click.
+      
+ <dt>
+     <li><a href="converters.R">converters.R</a>
+  <dd>	 Illustration of registering and removing
+      a C routine to  convert a Java object to an R object.
+ <dt>
+     <li><a href="dataFrameView.R">dataFrameView.R</a>
+  <dd>	 Illustration of how to use the Omegahat
+      <a
+      href="http://www.omegahat.org/api/org/omegahat/DataStructures/Data/Viewers/DataFrameViewer.html">DataFrameViewer</a> class to display (and edit) an R data frame.
+
+  <dt>
+  <li> <a href="dataFrameReferenceView.R">dataFrameReferenceView</a>
+  <dd> This is similar to dataFrameView but rather than copying
+       the contents of the R data frame to a corresponding Java 
+       class that is self-contained, we send a reference to the 
+       R data frame and arrange to have the Java viewer callback
+      to R to get the information such as variable names,
+       number of columns and rows and cell values.
+      
+ <dt>
+     <li><a href="file.choose.R">file.choose.R</a>
+  <dd>	 A simple example of using the
+       <a href="../man/Java/html/Java.html"><code>.Java</code></a>
+      and <a href="../man/Java/html/JavaConstructor.html"><code>.JavaConstructor</code></a> functions to allow
+      the user navigate their directories and select a file
+      using the Swing GUI classes.
+ <dt>
+     <li><a href="functionConverters.R">functionConverters.R</a>
+  <dd>	 Provides an example of how to register R functions
+      to convert Java objects to R objects when they are
+      returned from  <a href="../man/Java/html/Java.html"><code>.Java</code></a>
+     <a href="../man/Java/html/JavaConstructor.html"><code>.JavaConstructor</code></a> and
+      <a href="../man/Java/html/OmegahatExpression.html"><code>.OmegahatExpression()</code></a> calls.
+ <dt>
+     <li><a href="getClass.R">getClass.R</a>
+  <dd>	  A very simple illustration of using several
+       inlined <a href="../man/Java/html/Java.html"><code>.Java</code></a> calls to compute
+      the super class of an object.
+ <dt>
+     <li><a href="mouseMotion.R">mouseMotion.R</a>
+  <dd>	 An example of using an R function to respond to mouse
+      movement events on a Swing component and dynamically displaying
+      the X and Y position of the mouse in a Swing label.
+
+</dl>
+
+
+<hr>
+<address>
+<a href="http://cm.bell-labs.com/stat/duncan">Duncan Temple Lang</a>
+<a href="mailto:duncan@research.bell-labs.com">&lt;duncan@research.bell-labs.com&gt;</a>
+</address>
+<!-- hhmts start -->
+Last modified: Tue Jul 25 11:38:31 EDT 2000
+<!-- hhmts end -->
+</body> </html>
