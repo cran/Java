@@ -108,6 +108,8 @@ mergeProperties <-
 #
 function(.qualifier, .methodName, ..., .name=NULL, .sigs="", .convert=T)
 {
+ isJavaInitialized("Java virtual machine has not been initialized. Call .JavaInit()")
+
  args <- list(...)
  argNames <- names(args)
  .methodName <- as.character(.methodName)
@@ -156,6 +158,8 @@ function(expr, ..., .name=NULL, .sigs="", .convert=T)
 #
 function(className, ..., .name="", .sigs="", .convert=T) 
 {
+ isJavaInitialized("Java virtual machine has not been initialized. Call .JavaInit()")
+
  clss <- as.character(className)
  args <- list(...)
  argNames <- names(args)

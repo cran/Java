@@ -1,12 +1,15 @@
 \name{.Java}
 \alias{.Java}
 \title{Invokes a Java method}
+
 \description{
- Calls a Java method, transferring R arguments to the
-Java (Omegahat) system as needed.
-This can be used to call methods in the Omegahat evaluator,
-not just on previously created user-level objects.
+ Calls a Java method, transferring R arguments to the Java (Omegahat)
+system as needed.  This can be used to call methods in the Omegahat
+evaluator, not just on previously created user-level objects.  One
+must create and initialize the Java virtual machine before calling
+this function. See \code{\link{.JavaInit}}.  
 }
+
 \usage{
 .Java(.qualifier, .methodName, ..., .name=NULL, .sigs="")
 }

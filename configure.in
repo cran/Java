@@ -117,6 +117,9 @@ elif test "${VENDOR}" = "Sun" ; then
   fi
 dnl -lthread for Solaris
 dnl -lhpi
+elif test "${VENDOR}" = "Blackdown Java-Linux Team" ; then
+    # same as Sun for libraries.
+  JAVA_LIBS="-ljvm" ;
 else 
  echo "Sorry. We can currently only configure this package for IBM, Blackdown or Sun's Java implementation"
  exit 1;

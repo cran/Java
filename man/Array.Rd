@@ -12,6 +12,9 @@
 Java arrays via R commands using the \code{\link{.Java}}
 function. The get and set accessors work element-wise
 and not in the vector fashion common in R and S.
+One must create and initialize the Java virtual machine 
+before calling any of these functions. See
+\code{\link{.JavaInit}}. 
 }
 \usage{
 .JavaArrayConstructor(klass, ..., dim=length(list(...)), .name=NULL, .convert=F)

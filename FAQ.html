@@ -87,7 +87,27 @@ ln -s Java.so libJava.so
       A script - <code>cleanup</code> -
       will do this for you. It is located in the
       <code>Java/scripts</code> directory where the library was installed.
-    
+
+
+  <dt>
+  <li> Why do we have to explicitly run .JavaInit() ?  It seems like a
+     waste of time after the library call.
+  <dd> From <a href="mailto:rossini@biostat.washington.edu">Tony Rossini</a>:<br>
+     Because you only get one chance per R session to add directories or
+     jars to the classpath, set the library path and start up the
+     Omegahat interpreter (almost!).
+
+  <dt>
+  <li>
+      I forgot to start the JVM (i.e. call <code>.JavaInit()</code>)
+      before calling one of the functions that needed it.
+      Now when I call <code>.JavaInit()</code> after this, it hangs?
+  <dd>
+      Yep. This appears to be a problem with some operating systems
+      and Java implementations. It is likely that this is a problem
+      with threads and synchronization. I am not certain how
+      to handle it at this stage.
+      <a href="Bugs.html#Threads">See the Bug list.</a>
 
 </dl>
 
@@ -148,6 +168,6 @@ ln -s Java.so libJava.so
 <hr>
 <address></address>
 <!-- hhmts start -->
-Last modified: Mon Jul 24 20:15:38 EDT 2000
+Last modified: Fri Jul 28 07:33:04 EDT 2000
 <!-- hhmts end -->
 </body> </html>

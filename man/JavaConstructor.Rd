@@ -6,6 +6,9 @@
 the desired class. The object is (almost always)
 stored in the Omegahat
 session and a reference to it returned.
+One must create and initialize the Java virtual machine 
+before calling this function. See
+\code{\link{.JavaInit}}. 
 }
 \usage{
 .JavaConstructor(className, ..., .name="", .sigs="", .convert=T)

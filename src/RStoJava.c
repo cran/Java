@@ -1,5 +1,5 @@
 
-# line 1116 "RStoJava.cweb"
+# line 1121 "RStoJava.cweb"
 #if defined(_R_)
 #include "RtoJava.h"
 #else
@@ -13,14 +13,14 @@
 #include "ErrorHandling.h"
 
 
-# line 969 "RStoJava.cweb"
+# line 974 "RStoJava.cweb"
 const int FOREIGN_REFERENCE_ID_SLOT = 1;
 const int FOREIGN_REFERENCE_CLASSNAME_SLOT = 2;
 const int FOREIGN_REFERENCE_CLASS_SLOT = 3;
 
 
 
-# line 664 "RStoJava.cweb"
+# line 669 "RStoJava.cweb"
 void *
 s_to_java_basic(JNIEnv *env, USER_OBJECT_ obj, char *sig, char **actual_sig_ptr)
 {
@@ -93,7 +93,7 @@ fprintf(stderr, "No user level conversion\n"); fflush(stderr);
   return(value);
 }
 
-# line 742 "RStoJava.cweb"
+# line 747 "RStoJava.cweb"
 void*
 convertToJava(JNIEnv *env, USER_OBJECT_ obj, jboolean isArray, java_type whichType, long n) 
 {
@@ -319,7 +319,7 @@ printf("Creating foreign reference %s\n",
 }  
 
 
-# line 997 "RStoJava.cweb"
+# line 1002 "RStoJava.cweb"
 char *
 getJavaSignature(USER_OBJECT_ obj, jboolean *isReference)
 {
@@ -372,7 +372,7 @@ getJavaSignature(USER_OBJECT_ obj, jboolean *isReference)
 
 
 
-# line 638 "RStoJava.cweb"
+# line 643 "RStoJava.cweb"
 USER_OBJECT_
 s_create_default_vm()
 {
@@ -498,7 +498,7 @@ if(val != NULL_JAVA_OBJECT) {
 
 
 
-# line 440 "RStoJava.cweb"
+# line 445 "RStoJava.cweb"
 USER_OBJECT_
 convertAnswer(JNIEnv *env, USER_OBJECT_ returnValueName, jobject val) 
 {
@@ -538,7 +538,7 @@ fprintf(stderr,"No return name. Getting class name\n");fflush(stderr);
 
 
 
-# line 488 "RStoJava.cweb"
+# line 493 "RStoJava.cweb"
 jobjectArray
 argsToArray(JNIEnv *env, USER_OBJECT_ userArgs, USER_OBJECT_ signatures)
 {
@@ -565,7 +565,7 @@ argsToArray(JNIEnv *env, USER_OBJECT_ userArgs, USER_OBJECT_ signatures)
  return(argArray);
 }
 
-# line 526 "RStoJava.cweb"
+# line 531 "RStoJava.cweb"
 jobjectArray
 argNamesToArray(JNIEnv *env, USER_OBJECT_ userArgNames, int addExtraValue)
 {
@@ -604,7 +604,7 @@ argNamesToArray(JNIEnv *env, USER_OBJECT_ userArgNames, int addExtraValue)
 }
 
 
-# line 570 "RStoJava.cweb"
+# line 575 "RStoJava.cweb"
 jobjectArray
 JavaObjectArray(JNIEnv *env, int length)
 {
@@ -623,7 +623,7 @@ JavaObjectArray(JNIEnv *env, int length)
 return(arr);
 }
 
-# line 603 "RStoJava.cweb"
+# line 608 "RStoJava.cweb"
 jobjectArray
 JavaStringArray(JNIEnv *env, int length)
 {
@@ -650,16 +650,21 @@ RS_ConstructorJavaCall(USER_OBJECT_ className, USER_OBJECT_ userArgs,
 {
 
  JNIEnv *env = getJNIEnv();
-
+ 
   jstring JreturnValueName = NULL_JAVA_OBJECT;
   jobject val;
   USER_OBJECT_ user_ans;
   jstring JclassName;
 
-  jobjectArray args = argsToArray(env, userArgs, signatures);
-  jobjectArray argNames = argNamesToArray(env, userArgNames, FALSE);
- 
+  jobjectArray args;
+  jobjectArray argNames;
 
+  if(env == NULL) {
+     PROBLEM "The JVM is not currently running. Use .JavaInit()" 
+     ERROR;
+  }  
+    args = argsToArray(env, userArgs, signatures);
+    argNames = argNamesToArray(env, userArgNames, FALSE);
     JclassName = VMENV NewStringUTF(env, CHAR_DEREF(CHARACTER_DATA(className)[0]));
 
 
@@ -681,7 +686,7 @@ RS_ConstructorJavaCall(USER_OBJECT_ className, USER_OBJECT_ userArgs,
 }
 
 
-# line 376 "RStoJava.cweb"
+# line 381 "RStoJava.cweb"
 USER_OBJECT_
 RS_OmegahatExpression(USER_OBJECT_ expressionString, 
                        USER_OBJECT_ userArgs, USER_OBJECT_ userArgNames,
@@ -714,7 +719,7 @@ return(user_ans);
 
 
 
-# line 627 "RStoJava.cweb"
+# line 632 "RStoJava.cweb"
 JNIEnv *SgetJNIEnv()
 {
  if(!exists_Java_vm())  
@@ -725,7 +730,7 @@ JNIEnv *SgetJNIEnv()
 
 
 
-# line 1054 "RStoJava.cweb"
+# line 1059 "RStoJava.cweb"
 USER_OBJECT_
 javaToUserString(JNIEnv *env, jobject val)
 {
@@ -745,7 +750,7 @@ return(ans);
 }
 
 
-# line 1083 "RStoJava.cweb"
+# line 1088 "RStoJava.cweb"
 jclass
 ManagerFindClass(JNIEnv *env, char *className)
 {
@@ -763,7 +768,7 @@ ManagerFindClass(JNIEnv *env, char *className)
 
 
 
-# line 1105 "RStoJava.cweb"
+# line 1110 "RStoJava.cweb"
 void
 RS_JAVA(isJVMInitialized)(long *wellThen)
 {
@@ -774,7 +779,7 @@ RS_JAVA(isJVMInitialized)(long *wellThen)
 
 
 
-# line 1130 "RStoJava.cweb"
+# line 1135 "RStoJava.cweb"
 /*
         Copyright (c) 1998, 1999 The Omega Project for Statistical Computing.
          All rights reserved.
