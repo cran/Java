@@ -9,7 +9,9 @@ classPath = c(
 properties=c(EmbeddedInR="true",
              InterfaceManagerClass="org/omegahat/Interfaces/NativeInterface/OmegaInterfaceManager",
              ForeignReferenceBaseClass="org/omegahat/R/Java/RForeignReference",
-             "java.compiler"="NONE"
+             "java.compiler"="NONE",
+             "OMEGA_HOME"="@R_PACKAGE_DIR@/org/omegahat",
+             OmegahatSearchPath=".,${OMEGA_HOME}/Environment/Scripts/Run,${OMEGA_HOME}/Jars/Environment.jar"
             ),
 libraryPath=c("@R_PACKAGE_DIR@/libs")
 )

@@ -17,7 +17,7 @@
 JNIEXPORT jobject JNICALL Java_org_omegahat_R_Java_RForeignReference_eval
   (JNIEnv *env, jobject rref, jstring jid, jobjectArray args, jstring jmethodName, jstring jreturnClass, jobjectArray  jsignature)
 {
- extern int R_PPStackTop, R_EvalDepth;
+ extern int R_PPStackTop;
  SEXP details, userAns;
  int numArgs = 0;
  char *sig;
@@ -41,10 +41,10 @@ JNIEXPORT jobject JNICALL Java_org_omegahat_R_Java_RForeignReference_eval
      jobject el;
      int i;
      remoteArgs = NEW_LIST(numArgs) ;
-     VECTOR(details)[ARGUMENTS] = remoteArgs;       
+     SET_VECTOR_ELT(details, ARGUMENTS, remoteArgs);       
      for(i = 0; i < numArgs ; i++) {
         el = VMENV GetObjectArrayElement(env, args, i);
-        VECTOR(VECTOR(details)[ARGUMENTS])[i] = s_from_java_basic(env, el, NULL, TRUE, TRUE);
+        SET_VECTOR_ELT(VECTOR_ELT(details, ARGUMENTS), i, s_from_java_basic(env, el, NULL, TRUE, TRUE));
      }
    }
   
@@ -53,14 +53,14 @@ JNIEXPORT jobject JNICALL Java_org_omegahat_R_Java_RForeignReference_eval
   PROTECT(userAns = RJava(invokeRReferenceMethod)(details));
    if(GET_LENGTH(userAns) == 2) {
       /* An error. */
-     const char *msg = strdup(CHAR_DEREF(STRING(VECTOR(userAns)[1])[0]));
+     const char *msg = strdup(CHAR_DEREF(STRING_ELT(VECTOR_ELT(userAns, 1), 0)));
      UNPROTECT(2); /* details */
      R_PPStackTop  = tmpStackTop;
      throw_Java_exception(msg, NULL,  env);
    } else {
        /* Convert result. */
-    if(GET_LENGTH(VECTOR(userAns)[0]) > 0) {
-     ans = s_to_java_basic(env, VECTOR(userAns)[0], NULL, &sig);
+    if(GET_LENGTH(VECTOR_ELT(userAns, 0)) > 0) {
+     ans = s_to_java_basic(env, VECTOR_ELT(userAns, 0), NULL, &sig);
     }
    }
 
@@ -75,13 +75,13 @@ RS_JAVA(addStringValue)(JNIEnv *env,  jstring str, USER_OBJECT_ details, int whi
 {
   const char *tmp;
   jboolean isCopy;
-    VECTOR(details)[which]  = NEW_CHARACTER(1);
+    SET_VECTOR_ELT(details, which, NEW_CHARACTER(1));
     if(str == NULL_JAVA_OBJECT) {
        return(which);
     }
   
     tmp = VMENV GetStringUTFChars(env, str, &isCopy);
-    STRING(VECTOR(details)[which])[0] = mkChar(tmp);
+    SET_STRING_ELT(VECTOR_ELT(details, which), 0, mkChar(tmp));
     if(isCopy == JNI_TRUE) {
          VMENV ReleaseStringUTFChars(env, str, tmp);
     }
@@ -100,12 +100,12 @@ RS_JAVA(addStringValues)(JNIEnv *env, jobjectArray strArray, USER_OBJECT_ detail
  USER_OBJECT_ els;
 
   n = VMENV GetArrayLength(env, strArray);
-    
-  els = LIST_POINTER(details)[slot] = NEW_CHARACTER(n);
+
+  SET_VECTOR_ELT(details, slot, NEW_CHARACTER(n));
   for(i = 0; i < n ; i++) {
     el = VMENV GetObjectArrayElement(env, strArray, i);     
     tmp = VMENV GetStringUTFChars(env, el, &isCopy);
-    CHARACTER_DATA(els)[i] = COPY_TO_USER_STRING(tmp);
+    SET_STRING_ELT(VECTOR_ELT(details, slot), i, COPY_TO_USER_STRING(tmp));
     if(isCopy == JNI_TRUE) {
          VMENV ReleaseStringUTFChars(env, el, tmp);
     }    
@@ -156,7 +156,7 @@ RJava(invokeRReferenceMethod)(SEXP opArgs)
     */
   if(isFunction(fun) == FALSE) {
     if(IS_VECTOR(fun)) {
-      fun = VECTOR(fun)[0];
+      fun = VECTOR_ELT(fun, 0);
      }
   }
 
@@ -183,7 +183,7 @@ RJava(createCall)(SEXP fun, SEXP opArgs)
   if(n  > 0) {
     PROTECT(c = call = allocList(n));
     for (i = 0; i < n; i++) {
-      CAR(c) = VECTOR(opArgs)[i];
+      SETCAR(c, VECTOR_ELT(opArgs, i));
       c = CDR(c);
     }
 
@@ -191,7 +191,7 @@ RJava(createCall)(SEXP fun, SEXP opArgs)
     UNPROTECT(1);
   } else  {
      call = allocVector(LANGSXP,1);
-     CAR(call) = fun;
+     SETCAR(call,  fun);
   }  
  
  return(call);
@@ -214,22 +214,22 @@ getRReference(jobject ref, JNIEnv *env)
     /* Get the getReference() function and set this as the function
        to call.
      */
- getReferenceFun = LIST_POINTER(f)[4];
+ getReferenceFun = VECTOR_ELT(f, 4);
 
 
     /* Now call this function with the single argument, the
        reference name/identifier.
      */
  PROTECT(e = allocVector(LANGSXP, 2));   
- CAR(e) = getReferenceFun;
+ SETCAR(e, getReferenceFun);
 
      /* Convert the java string identifying the reference to an R object. */
  tmp = VMENV GetStringUTFChars(env, (jstring) ref, &isCopy);
  PROTECT(name = NEW_CHARACTER(1));
- CHARACTER_DATA(name)[0] = COPY_TO_USER_STRING(tmp);
+ SET_STRING_ELT(name, 0, COPY_TO_USER_STRING(tmp));
  if(isCopy)
    VMENV ReleaseStringUTFChars(env, (jstring) ref, tmp); 
- CAR(CDR(e)) = name;
+ SETCAR(CDR(e), name);
 
       /* Now ready to call the getReference() function. */
  ans =  eval(e, R_GlobalEnv);

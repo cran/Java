@@ -17,11 +17,11 @@
 # line 190 "RtoJava.cweb"
 static void *local_alloc(size_t n);
 
-# line 632 "RtoJava.cweb"
+# line 637 "RtoJava.cweb"
   static void msg_and_clear_exception(const char *msg);
 
 
-# line 696 "RtoJava.cweb"
+# line 701 "RtoJava.cweb"
 const char  * const BaseOmegahatReferenceClass = "OmegahatReference";
 const char  * const NamedOmegahatReferenceClass = "NamedOmegahatReference";
 const char  * const AnonymousOmegahatReferenceClass = "AnonymousOmegahatReference";
@@ -31,7 +31,7 @@ const char  * const AnonymousRReferenceClass = "AnonymousRReference";
 
 
 
-# line 749 "RtoJava.cweb"
+# line 754 "RtoJava.cweb"
 char *
 javaReferenceSignature(USER_OBJECT_ obj, int checkArray)
 {
@@ -78,7 +78,7 @@ return(sig);
 
 
 
-# line 592 "RtoJava.cweb"
+# line 597 "RtoJava.cweb"
 /* catch exception, if any; When S is in charge turn an exception into
    an S error.  Otherwise return TRUE if there is an exception.   If
    error==FALSE, clear the exception */
@@ -119,7 +119,7 @@ s_catch_exception(boolean asError)
 }
 
 
-# line 637 "RtoJava.cweb"
+# line 642 "RtoJava.cweb"
 static void 
 msg_and_clear_exception(const char *msg)
 {
@@ -135,7 +135,7 @@ msg_and_clear_exception(const char *msg)
     
 
 
-# line 675 "RtoJava.cweb"
+# line 680 "RtoJava.cweb"
 void
 s_start_VM(char **classPathEls, char **extraProperties, long *numExtraProperties)
 {
@@ -157,7 +157,7 @@ s_start_VM(char **classPathEls, char **extraProperties, long *numExtraProperties
 
 
 
-# line 424 "RtoJava.cweb"
+# line 429 "RtoJava.cweb"
 USER_OBJECT_
 asOmegaReferenceUserObject(JNIEnv *env, jobject omegaObject)
 {
@@ -211,7 +211,7 @@ asOmegaReferenceUserObject(JNIEnv *env, jobject omegaObject)
 }
 
 
-# line 497 "RtoJava.cweb"
+# line 502 "RtoJava.cweb"
 USER_OBJECT_
 createUserReferenceObject(JNIEnv *env, const char *SclassName, jstring value, jstring realClassName)
 {
@@ -223,20 +223,20 @@ createUserReferenceObject(JNIEnv *env, const char *SclassName, jstring value, js
      /* Set the `name' slot, which we happen to know is 
         slot 0!
       */
-   RECURSIVE_DATA(ans)[0] = javaToUserString(env, value);
+   SET_VECTOR_ELT(ans, 0, javaToUserString(env, value));
 
-   RECURSIVE_DATA(ans)[1] = javaToUserString(env, realClassName);
+   SET_VECTOR_ELT(ans, 1, javaToUserString(env, realClassName));
 
 
   PROTECT(slotNames = allocVector(STRSXP, 2));
-  STRING(slotNames)[0] =mkChar("key");
-  STRING(slotNames)[1] =mkChar("className"); 
+  SET_STRING_ELT(slotNames, 0, mkChar("key"));
+  SET_STRING_ELT(slotNames, 1, mkChar("className")); 
     
   setAttrib(ans, R_NamesSymbol, slotNames);
   UNPROTECT(1); /* slotNames */ 
  
   PROTECT(className = allocVector(STRSXP, 1));
-  STRING(className)[0] = mkChar((char*)SclassName);
+  SET_STRING_ELT(className, 0, mkChar((char*)SclassName));
   setAttrib(ans, R_ClassSymbol, className);
 
   UNPROTECT(1); /* className */
@@ -263,7 +263,7 @@ userReferenceToJava(JNIEnv *env, USER_OBJECT_ obj, java_type which)
   }
 #endif
    /* Get the ID part. */
-  name = CHAR_DEREF(STRING(RECURSIVE_DATA(obj)[0])[0]);
+  name = CHAR_DEREF(STRING_ELT(VECTOR_ELT(obj, 0), 0));
 #if LDEBUG
 printf("[userReferenceToJava] %s %d\n", name, which); fflush(stdout);
 #endif
@@ -365,6 +365,10 @@ printf("[s_from_java_basic]  %d  %d\n",(int) which, (int) n);fflush(stdout);
 
   switch(which) {
 
+        /* An R integer is an int not a long, and so integer is too small to get a Java long.
+	   Use numeric().
+	 */
+    case JAVA_LONG:
     case JAVA_DOUBLE: 
       value = NEW_NUMERIC(n);
       PROTECT(value);
@@ -377,7 +381,6 @@ printf("[s_from_java_basic]  %d  %d\n",(int) which, (int) n);fflush(stdout);
       msg = fromJavaType(env, obj, which, n, (void *)NUMERIC_POINTER(value), isArray, sizeof(float), local_alloc);
       break;
 
-    case JAVA_LONG:
     case JAVA_INT:
     case JAVA_SHORT:
        value = NEW_INTEGER(n);
@@ -403,8 +406,8 @@ printf("[s_from_java_basic]  %d  %d\n",(int) which, (int) n);fflush(stdout);
     case JAVA_CHAR:
        value = NEW_CHARACTER(1);
        PROTECT(value);
-       STRING(value)[0] = COPY_TO_USER_STRING("X");
-       msg = fromJavaType(env, obj, which, n, (void *)CHARACTER_DATA(value)[0], isArray, sizeof(char), local_alloc);
+       SET_STRING_ELT(value, 0, COPY_TO_USER_STRING("X"));
+       msg = fromJavaType(env, obj, which, n, (void *)STRING_ELT(value, 0), isArray, sizeof(char), local_alloc);
        break;
 
     case JAVA_BYTE:
@@ -431,7 +434,7 @@ XXXXXXXXXXX
               inEl = VMENV GetObjectArrayElement(env, obj, i);
               if(inEl != NULL_JAVA_OBJECT) {
                 inString = VMENV GetStringUTFChars(env, inEl, &isCopy);
-                CHARACTER_DATA(value)[i] = COPY_TO_USER_STRING(inString);
+                SET_STRING_ELT(value, i, COPY_TO_USER_STRING(inString));
                 if(isCopy == JNI_TRUE)
                    VMENV ReleaseStringUTFChars(env, inEl, inString);
               }
@@ -451,7 +454,9 @@ XXXXXXXXXXX
         jboolean isCopy;
         value = NEW_LIST(n); 
         PROTECT(value);
-        els = RECURSIVE_DATA(value);
+/*
+  els = RECURSIVE_DATA(value);
+*/
         msg = NULL;
         for(i=0; i<n; i++) {
           eli = (*env)-> GetObjectArrayElement(env, obj, i);
@@ -459,7 +464,7 @@ XXXXXXXXXXX
           msg = (char *) get_Java_exception(NULL, env);
           if(msg != NULL) break;
           typei = (*env)-> GetStringUTFChars(env, Jtypei, &isCopy);
-          els[i] = s_from_java_basic(env, eli, typei, catch, TRUE);
+          SET_VECTOR_ELT(value, i, s_from_java_basic(env, eli, typei, catch, TRUE));
           if(isCopy == JNI_TRUE)
             (*env)-> ReleaseStringUTFChars(env, Jtypei, typei);
           (*env)-> DeleteLocalRef(env, eli);
@@ -497,7 +502,7 @@ JNIEXPORT jobject JNICALL Java_org_omegahat_interfaceManager_S_Test_foo
 
 
 
-# line 799 "RtoJava.cweb"
+# line 804 "RtoJava.cweb"
 #if 0
 #define IS(a,b)  TRUE
 #endif
@@ -513,7 +518,7 @@ int IS(USER_OBJECT_ obj, const char * const name)
  n = GET_LENGTH(className);
 
   for(i=0;i<n;i++) {
-    if(strcmp(name, CHAR_DEREF(STRING(className)[i])) == 0) {
+    if(strcmp(name, CHAR_DEREF(STRING_ELT(className, i))) == 0) {
 #if LDEBUG      
 printf("Is a %s\n", name);
 PrintValue(obj);
@@ -526,7 +531,7 @@ PrintValue(obj);
 
 
 
-# line 712 "RtoJava.cweb"
+# line 717 "RtoJava.cweb"
 USER_OBJECT_
 createRAnonymousReference(USER_OBJECT_ obj)
 {
@@ -535,11 +540,11 @@ createRAnonymousReference(USER_OBJECT_ obj)
   USER_OBJECT_ createFun;
 
        /* The create reference method had better be the first element in the list! */
-     createFun = LIST_POINTER(handler)[1];
+     createFun = VECTOR_ELT(handler, 1);
      PROTECT(expr = allocVector(LANGSXP, 2));
 
-       CAR(expr) = createFun;
-       CAR(CDR(expr)) = obj;
+       SETCAR(expr, createFun);
+       SETCAR(CDR(expr), obj);
 
        value = eval(expr, R_GlobalEnv);
 
@@ -549,7 +554,7 @@ createRAnonymousReference(USER_OBJECT_ obj)
 }    
 
 
-# line 828 "RtoJava.cweb"
+# line 833 "RtoJava.cweb"
 /*
        Copyright (c) 1998, 1999 The Omega Project for Statistical Computing.
           All rights reserved.

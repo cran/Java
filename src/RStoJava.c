@@ -163,12 +163,12 @@ printf("convertToJava %d %s %d\n", whichType, (isArray == JNI_TRUE?"yes" :"no"),
 /*
   fprintf(stderr, "Converting to a string array of length %d\n", (int)i);        fflush(stderr);
 */
-         str = VMENV NewStringUTF(env, CHAR_DEREF(CHARACTER_DATA(obj)[i]));
+         str = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(obj, i)));
          VMENV SetObjectArrayElement(env, value, i, str);
          VMENV DeleteLocalRef(env, str);
        }
       } else {
-         value = VMENV NewStringUTF(env, CHAR_DEREF(CHARACTER_DATA(obj)[0]));
+         value = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(obj, 0)));
       }
     break;
   }
@@ -264,13 +264,13 @@ fprintf(stderr, "Creating Java object from R reference %d\n", whichType);fflush(
     jstring jid, jclassName, tmp;
     jobjectArray jtypes = NULL;
 
-      jid = VMENV NewStringUTF(env, CHAR_DEREF(STRING(VECTOR(obj)[FOREIGN_REFERENCE_ID_SLOT])[0]));
-      jclassName = VMENV NewStringUTF(env, CHAR_DEREF(STRING(VECTOR(obj)[FOREIGN_REFERENCE_CLASSNAME_SLOT])[0]));   
+      jid = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(VECTOR_ELT(obj, FOREIGN_REFERENCE_ID_SLOT), 0)));
+      jclassName = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(VECTOR_ELT(obj, FOREIGN_REFERENCE_CLASSNAME_SLOT), 0)));   
 
-      n = GET_LENGTH(VECTOR(obj)[FOREIGN_REFERENCE_CLASS_SLOT]);
+      n = GET_LENGTH(VECTOR_ELT(obj, FOREIGN_REFERENCE_CLASS_SLOT));
       jtypes = JavaStringArray(env, n);
       for(i=0;i<n;i++) {
-        tmp = VMENV NewStringUTF(env, CHAR_DEREF(STRING(VECTOR(obj)[FOREIGN_REFERENCE_CLASS_SLOT])[i]));
+        tmp = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(VECTOR_ELT(obj, FOREIGN_REFERENCE_CLASS_SLOT), i)));
         VMENV SetObjectArrayElement(env, jtypes, i, tmp);
         VMENV DeleteLocalRef(env, tmp);
 
@@ -308,11 +308,11 @@ foo(USER_OBJECT_ obj)
 {
    int i,n;
 printf("Creating foreign reference %s\n",
-           CHAR_DEREF(STRING(VECTOR(obj)[FOREIGN_REFERENCE_ID_SLOT])[0]));fflush(stdout);
+           CHAR_DEREF(STRING_ELT(VECTOR_ELT(obj, FOREIGN_REFERENCE_ID_SLOT), 0)));fflush(stdout);
 
-  n = GET_LENGTH(VECTOR(obj)[FOREIGN_REFERENCE_CLASS_SLOT]);
+  n = GET_LENGTH(VECTOR_ELT(obj, FOREIGN_REFERENCE_CLASS_SLOT));
  for(i=0;i < n; i++) {
-   printf("%d) %s\n", i, CHAR_DEREF(STRING(VECTOR(obj)[FOREIGN_REFERENCE_CLASS_SLOT])[i]));     fflush(stdout);   
+   printf("%d) %s\n", i, CHAR_DEREF(STRING_ELT(VECTOR_ELT(obj, FOREIGN_REFERENCE_CLASS_SLOT), i)));     fflush(stdout);   
  }
   
  return(obj);
@@ -328,9 +328,9 @@ getJavaSignature(USER_OBJECT_ obj, jboolean *isReference)
  int n = GET_LENGTH(obj);
  
     /* pick the signature suitable to the mode of the data */
-    switch(GET_MODE(obj)) {
-    case REALSXP:  /* No single in R.*/
-         sig = n > 1 ? "[D" : "D"; 
+    switch(TYPEOF(obj)) {
+    case REALSXP:  /* No single in R. */
+         sig = (n > 1 ? "[D" : "D"); 
          break;
     case LGLSXP: 
          sig = n > 1 ? "[Z" : "Z"; 
@@ -364,7 +364,7 @@ getJavaSignature(USER_OBJECT_ obj, jboolean *isReference)
     case NILSXP: /* return a java null */
       sig = NULL;
     default:
-          printf("Problems: unrecognized user-level object of mode %d\n", GET_MODE(obj)); fflush(stdout);
+          printf("Problems: unrecognized user-level object of mode %d\n", TYPEOF(obj)); fflush(stdout);
     }
 
  return(sig);
@@ -464,10 +464,10 @@ printf("Qualifier\n");
  
 
    returnName  = (GET_LENGTH(returnValueName) > 0) ?
-                             CHAR_DEREF(CHARACTER_DATA(returnValueName)[0]) : "";
+                             CHAR_DEREF(STRING_ELT(returnValueName,0)) : "";
 
   JreturnValueName = VMENV NewStringUTF(env, returnName);
-  jmethodName = VMENV NewStringUTF(env, CHAR_DEREF(CHARACTER_DATA(methodName)[0]));
+  jmethodName = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(methodName, 0)));
 
   val = callGenericOmegaMethod(env, jqualifier, jmethodName,
                                  args, argNames, JreturnValueName, LOGICAL_DATA(convert)[0]);
@@ -555,8 +555,8 @@ argsToArray(JNIEnv *env, USER_OBJECT_ userArgs, USER_OBJECT_ signatures)
   argArray = JavaObjectArray(env, numArgs);
   for(i = 0; i < numArgs; i++) {
      jobject tmp;
-      tmp = (jobject)s_to_java_basic(env, RECURSIVE_DATA(userArgs)[i], 
-                                     i < numSignatures ? CHAR(CHARACTER_DATA(signatures)[i]) : NULL,
+      tmp = (jobject)s_to_java_basic(env, VECTOR_ELT(userArgs, i), 
+                                     i < numSignatures ? CHAR(STRING_ELT(signatures, i)) : NULL,
                                              &actual_sig);
     /* now put this into an Object array. */
    VMENV SetObjectArrayElement(env, argArray, i, tmp);
@@ -586,7 +586,7 @@ argNamesToArray(JNIEnv *env, USER_OBJECT_ userArgNames, int addExtraValue)
  jstring str;
      array = VMENV NewObjectArray(env, numNames, klass, NULL);
      for(i = 0; i < numNames; i++) {
-       str = VMENV NewStringUTF(env, CHAR_DEREF(CHARACTER_DATA(userArgNames)[i]));
+       str = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(userArgNames, i)));
        VMENV SetObjectArrayElement(env, array, i, str);
        VMENV DeleteLocalRef(env, str);
      }
@@ -665,11 +665,11 @@ RS_ConstructorJavaCall(USER_OBJECT_ className, USER_OBJECT_ userArgs,
   }  
     args = argsToArray(env, userArgs, signatures);
     argNames = argNamesToArray(env, userArgNames, FALSE);
-    JclassName = VMENV NewStringUTF(env, CHAR_DEREF(CHARACTER_DATA(className)[0]));
+    JclassName = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(className, 0)));
 
 
   if(GET_LENGTH(returnValueName) > 0) {
-    JreturnValueName = VMENV NewStringUTF(env, CHAR_DEREF(CHARACTER_DATA(returnValueName)[0]));
+    JreturnValueName = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(returnValueName, 0)));
   } else 
     JreturnValueName = VMENV NewStringUTF(env, "");
 
@@ -705,11 +705,11 @@ RS_OmegahatExpression(USER_OBJECT_ expressionString,
  jobjectArray argNames = argNamesToArray(env, userArgNames, FALSE);
 
  if(GET_LENGTH(returnValueName) > 0) {
-    JreturnValueName = VMENV NewStringUTF(env, CHAR_DEREF(CHARACTER_DATA(returnValueName)[0]));
+    JreturnValueName = VMENV NewStringUTF(env, CHAR_DEREF(STRING_ELT(returnValueName, 0)));
  }
 
 
-   expression = VMENV NewStringUTF(env,  CHAR_DEREF(CHARACTER_DATA(expressionString)[0]));
+   expression = VMENV NewStringUTF(env,  CHAR_DEREF(STRING_ELT(expressionString, 0)));
    val = evalOmegaExpression(env, expression, args, argNames, JreturnValueName, (jboolean) LOGICAL_DATA(convert)[0]);
 
   user_ans =  convertAnswer(env, returnValueName, val); 
@@ -739,7 +739,7 @@ javaToUserString(JNIEnv *env, jobject val)
  jboolean isCopy;
    inString = VMENV GetStringUTFChars(env, (jstring) val, &isCopy);
    PROTECT(ans = NEW_CHARACTER(1));
-   STRING(ans)[0] = COPY_TO_USER_STRING((char *)inString);
+   SET_STRING_ELT(ans, 0, COPY_TO_USER_STRING((char *)inString));
    UNPROTECT(1); 
 
    if(isCopy)

@@ -10,6 +10,7 @@
 #include "JNIUtils.h"
 
 #if defined(_R_)
+#include "RSCommon.h"
 #include "Rinternals.h"
 #include "Rdefines.h"
 #endif
@@ -17,7 +18,7 @@
 #include "ManagerInterfaceUtils.h"
 
 
-# line 848 "CtoJava.cweb"
+# line 874 "CtoJava.cweb"
 static const char *create_Java_classes(JNIEnv *env);
 
 
@@ -27,7 +28,7 @@ static const char *create_Java_classes(JNIEnv *env);
 #define LDEBUG 0
 #endif
 
-# line 137 "CtoJava.cweb"
+# line 138 "CtoJava.cweb"
 static JavaVM *jvm;
 static JDK1_1InitArgs vm1_args;
 
@@ -63,7 +64,7 @@ static jobject interfaceManager;
 #define INTERFACE_MANAGER_CLASSNAME "org/omegahat/Interfaces/NativeInterface/InterfaceManager"
 #define OMEGA_INTERFACE_MANAGER_CLASSNAME "org/omegahat/Interfaces/NativeInterface/OmegaInterfaceManager"
 
-# line 200 "CtoJava.cweb"
+# line 201 "CtoJava.cweb"
 /* a global ENV pointer, initialized when the virtual machine is
    created, and never changed.  It can be used to detect whether the
    current environment differs from the initial one (as, e.g., when
@@ -72,28 +73,28 @@ static jobject interfaceManager;
 static JNIEnv * std_env = NULL;
 
 
-# line 344 "CtoJava.cweb"
+# line 349 "CtoJava.cweb"
 #define ENSURE_VM (std_env!=NULL ? NULL : (interface_start_VM(NULL, NULL,\
                                                           NULL, NULL, NULL,0), NULL))
 
-# line 374 "CtoJava.cweb"
+# line 379 "CtoJava.cweb"
 static jmethodID doubleValueID, floatValueID, intValueID, longValueID,
   shortValueID, byteValueID, booleanValueID, charValueID;
 
 
-# line 380 "CtoJava.cweb"
-static void do_native_setup(jobject Manager, jobject nullObj, JNIEnv *env);
+# line 385 "CtoJava.cweb"
+static const char *do_native_setup(jobject Manager, jobject nullObj, JNIEnv *env);
 static const char *init_interfaceManagerClass(jobject Manager, JNIEnv *env);
 
 
-# line 388 "CtoJava.cweb"
+# line 393 "CtoJava.cweb"
 jclass OmegahatInterfaceManagerClass;
 
 
-# line 398 "CtoJava.cweb"
+# line 403 "CtoJava.cweb"
 jobject NullObject=NULL;
 
-# line 574 "CtoJava.cweb"
+# line 600 "CtoJava.cweb"
   /** Reference to the Java class `ForeignReference', resolved when the JVM is initialized.
     */
  jclass MetaForeignReferenceClass = NULL;
@@ -106,7 +107,7 @@ jobject NullObject=NULL;
 static const char *RS(initForeignReferences)(JNIEnv *env);
 
 
-# line 812 "CtoJava.cweb"
+# line 838 "CtoJava.cweb"
 /* the array type names */
 static char *typeNames[] = { "boolean", "byte", "char", "short",
                               "int", "long", "float", "double",
@@ -143,7 +144,7 @@ static jmethodID wrapperConstructor[N_JAVA_TYPES];
 
 
 
-# line 1554 "CtoJava.cweb"
+# line 1571 "CtoJava.cweb"
 const char *
 interface_start_VM( char *classpath,  char *omega_home,
                          char *interface_lib_path, 
@@ -192,7 +193,7 @@ fprintf(stderr, "In interface_start_VM\n");fflush(stderr);
     
 
 
-# line 209 "CtoJava.cweb"
+# line 210 "CtoJava.cweb"
 /* create and initialize the virtual machine.  Returns NULL or an
    error message. (use exists_vm to avoid the message if VM exists) */
 const char *
@@ -313,8 +314,12 @@ create_Java_vm(char *user_classpath, const char *javaLibPath,
        printf("Got it\n"); fflush(stdout);
 #endif
 
-    if(initializeNative == JNI_TRUE)    
-       do_native_setup(NULL, NULL, std_env);
+    if(initializeNative == JNI_TRUE) {
+     const char *msg;	
+       msg = do_native_setup(NULL, NULL, std_env);
+       if(msg)
+	  return(msg);
+    }
 
     return NULL;
 }
@@ -327,11 +332,11 @@ return(std_env ? 1 : 0);
 
 
 
-# line 406 "CtoJava.cweb"
-static void 
+# line 411 "CtoJava.cweb"
+static const char *
 do_native_setup(jobject Manager, jobject nullObj, JNIEnv *env)
 {
-  const char *msg;
+  const char *msg = NULL;
   /* Should only be called once.  Check needed both for multiple calls
    from the Java constructor, and also for recursion from the
    constructor, when initial call was from create_Java_vm; in this
@@ -341,20 +346,19 @@ do_native_setup(jobject Manager, jobject nullObj, JNIEnv *env)
     NullObject = nullObj;
 
   if(OmegahatInterfaceManagerClass) /* already initialized. */
-     return;
+     return(msg);
 
   msg = init_interfaceManagerClass(Manager, env);
   if(msg) 
-    return; /* or throw exception ? */;
+    return(msg); /* or throw exception ? */;
   msg = create_Java_classes(env);
 
-  if(msg) 
-     return; /* or throw exception ? */;
+  return(msg); /* or throw exception ? */;
 }
 
 
 
-# line 479 "CtoJava.cweb"
+# line 483 "CtoJava.cweb"
 static const char *
 init_interfaceManagerClass(jobject Manager, JNIEnv *env)
 {
@@ -366,11 +370,19 @@ init_interfaceManagerClass(jobject Manager, JNIEnv *env)
   if(Manager != NULL) {
       interfaceManager = Manager;
   } else {
+       /* So we create the Manager object.
+	  We do so by looking for the name of the class
+	  to use in the System property `InterfaceManagerClass'
+	  If that is not set, we use ou default
+	    (org.omegahat.Interfaces.NativeInterface.OmegaInterfaceManager)
 
+	  If we cannot find the class, it is likely that user will want
+	  to restart the VM. In that case
+	*/
     jboolean isCopy = FALSE;
     const char *className = NULL;
 
-   className = RS_JAVA(getSystemProperty)("InterfaceManagerClass", &isCopy, env);
+    className = RS_JAVA(getSystemProperty)("InterfaceManagerClass", &isCopy, env);
 
     
     if(className == NULL) {
@@ -379,14 +391,28 @@ init_interfaceManagerClass(jobject Manager, JNIEnv *env)
     }
     
     OmegahatInterfaceManagerClass = VMENV FindClass(env, className);
+    if(OmegahatInterfaceManagerClass == NULL) {
+       RS_JAVA(terminateJava)();
+       std_env = NULL;
+fprintf(stderr, "JVM %p Env %p\n", jvm, std_env);fflush(stderr);	
+       return("Cannot find the Omegahat interface manager class. Check you classpath!");
+    }
 
+      
      if(isCopy) {
-        /* Free the string classname. */
+        /* Free the string classname. Can't do it here easily.
+	   This one got away.
+	 */
+	 
      }
 
     
-    if(OmegahatInterfaceManagerClass == NULL)
+    if(OmegahatInterfaceManagerClass == NULL) {
+       RS_JAVA(terminateJava)();
+       std_env = NULL;
+fprintf(stderr, "JVM %p Env %p\n", jvm, std_env);fflush(stderr);
        return get_Java_exception("can't find OmegaInterfaceManager class",env);
+    }
 
     MUST_GET_METHOD_ID(constructor, OmegahatInterfaceManagerClass, NULL, "<init>", "()V", env);
     interfaceManager = VMENV NewObject(env, OmegahatInterfaceManagerClass, constructor);
@@ -400,7 +426,7 @@ init_interfaceManagerClass(jobject Manager, JNIEnv *env)
 
   
   
-# line 637 "CtoJava.cweb"
+# line 663 "CtoJava.cweb"
   MUST_GET_METHOD_ID(intValueID, VMENV FindClass(env, "java/lang/Integer"),
                      NULL, "intValue", "()I", env);
   MUST_GET_METHOD_ID(longValueID, VMENV FindClass(env, "java/lang/Long"),
@@ -433,7 +459,7 @@ init_interfaceManagerClass(jobject Manager, JNIEnv *env)
   }
 
 
-# line 524 "CtoJava.cweb"
+# line 550 "CtoJava.cweb"
     
    RS(initForeignReferences)(env);
      /* check for an exception in the loop. */
@@ -442,7 +468,7 @@ init_interfaceManagerClass(jobject Manager, JNIEnv *env)
 
 
 
-# line 857 "CtoJava.cweb"
+# line 883 "CtoJava.cweb"
 static const char *
 create_Java_classes(JNIEnv *env) 
 {
@@ -485,13 +511,13 @@ create_Java_classes(JNIEnv *env)
 
 
 
-# line 903 "CtoJava.cweb"
+# line 929 "CtoJava.cweb"
 int
 whatJavaType(void *javaObject, long *length_p, char **type_p, JNIEnv *env) {
   jobject obj; int i, length;
   obj = (jobject)javaObject;
 
-# line 924 "CtoJava.cweb"
+# line 950 "CtoJava.cweb"
     /* do a linear search of primitive  & String types.  Might be nice to
        fashion something faster, but this will do. We start with
        String and Double, thinking these likely to occur fairly often. */
@@ -522,7 +548,7 @@ whatJavaType(void *javaObject, long *length_p, char **type_p, JNIEnv *env) {
  return(i);
 }
  
-# line 976 "CtoJava.cweb"
+# line 1002 "CtoJava.cweb"
 enum java_types
 which_java_type(char *signature, jboolean *isArray, jboolean *builtIn) {
   int fullSig;
@@ -670,7 +696,7 @@ printf("which_java_type %s\n", signature);fflush(stdout);
 }
 
 
-# line 1141 "CtoJava.cweb"
+# line 1167 "CtoJava.cweb"
 void *
 toJavaType(JNIEnv *env, java_type which, long length, void *data, jboolean isArray) {
   jboolean isCopy;
@@ -770,8 +796,7 @@ toJavaType(JNIEnv *env, java_type which, long length, void *data, jboolean isArr
 #ifndef _R_      
         VMNewStringAssign(outEl, in[i], env);
 #else
-fprintf(stderr, "%d) %s\n", (int)i, CHAR(CHARACTER_DATA((SEXP)data)[i]));fflush(stderr);
-  outEl = VMENV NewStringUTF(env, CHAR(CHARACTER_DATA((SEXP)data)[i]));
+  outEl = VMENV NewStringUTF(env, CHAR(STRING_ELT((SEXP)data, i)));
 //        VMNewStringAssign(outEl, CHAR(CHARACTER_DATA((SEXP)in)[i]), env);     
 #endif  
         VMENV SetObjectArrayElement(env, obj, i, outEl);
@@ -831,7 +856,7 @@ fprintf(stderr, "%d) %s\n", (int)i, CHAR(CHARACTER_DATA((SEXP)data)[i]));fflush(
 }
 
 
-# line 1325 "CtoJava.cweb"
+# line 1350 "CtoJava.cweb"
 const char *
 fromJavaType(JNIEnv *env, jobject obj, java_type which, long n, void *ptr,
              jboolean isArray, int sz, alloc_fun alloc)
@@ -857,7 +882,7 @@ fromJavaType(JNIEnv *env, jobject obj, java_type which, long n, void *ptr,
     if(isCopy) VMENV ReleaseFloatArrayElements(env, obj, in, 0);
     return get_Java_exception(NULL, env);
     }
-# line 1357 "CtoJava.cweb"
+# line 1382 "CtoJava.cweb"
   case JAVA_INT:
     { jint *in = VMENV GetIntArrayElements(env, (jintArray)obj, &isCopy);
     if(sizeof(jint) == sz) {
@@ -876,21 +901,13 @@ fromJavaType(JNIEnv *env, jobject obj, java_type which, long n, void *ptr,
     return get_Java_exception(NULL, env);
     }
   case JAVA_LONG:
-    { jlong *in = VMENV GetLongArrayElements(env, (jlongArray)obj, &isCopy);
-     if(sizeof(jint) == sz) {
-      jint *out = (jint *)ptr;
-      for(i=0; i<n; i++)out[i] = in[i];
-     }
-     else if(sizeof(jlong) == sz) {
-      jlong *out = (jlong *)ptr;
-      memcpy(out, in, n*sizeof(*in));
-    }
-    else if(sizeof(jshort) == sz) {
-      jshort *out = (jshort *)ptr;
-      for(i=0; i<n; i++)out[i] = in[i];
-    }
-    if(isCopy) VMENV ReleaseLongArrayElements(env, obj, in, 0);
-    return get_Java_exception(NULL, env);
+    {
+     jlong *in = VMENV GetLongArrayElements(env, (jlongArray)obj, &isCopy);
+     double *out = (double *)ptr;
+      for(i=0; i<n; i++)
+	 out[i] = in[i];
+     if(isCopy) VMENV ReleaseLongArrayElements(env, obj, in, 0);
+     return get_Java_exception(NULL, env);
     }
   case JAVA_SHORT:
     {
@@ -910,7 +927,7 @@ fromJavaType(JNIEnv *env, jobject obj, java_type which, long n, void *ptr,
     if(isCopy) VMENV ReleaseShortArrayElements(env, obj, in, 0);
     return get_Java_exception(NULL, env);
     }
-# line 1422 "CtoJava.cweb"
+# line 1439 "CtoJava.cweb"
   case JAVA_STRING:
     { 
      jobjectArray in = (jobjectArray) obj;
@@ -945,7 +962,7 @@ fromJavaType(JNIEnv *env, jobject obj, java_type which, long n, void *ptr,
      return get_Java_exception(NULL, env);
     }
 
-# line 1467 "CtoJava.cweb"
+# line 1484 "CtoJava.cweb"
      default:
         return(get_Java_exception(NULL, env));
   }
@@ -976,7 +993,7 @@ fromJavaType(JNIEnv *env, jobject obj, java_type which, long n, void *ptr,
       return get_Java_exception(NULL, env);
     case JAVA_LONG:
       scalar.j = VMENV CallLongMethod(env, obj, longValueID);
-      *(long *)ptr = scalar.j;
+      *(double *)ptr = scalar.j;
       return get_Java_exception(NULL, env);
    
     case JAVA_BOOLEAN:
@@ -999,7 +1016,7 @@ fromJavaType(JNIEnv *env, jobject obj, java_type which, long n, void *ptr,
 
 
 
-# line 1614 "CtoJava.cweb"
+# line 1631 "CtoJava.cweb"
 JNIEnv *
 getJNIEnv()
 {
@@ -1079,7 +1096,7 @@ interface_VM_env(void)
   return std_env;
 }
 
-# line 1701 "CtoJava.cweb"
+# line 1718 "CtoJava.cweb"
 JavaVM *
 getJavaVM()
 {
@@ -1101,7 +1118,7 @@ RS_JAVA(terminateJava)()
 
 
 
-# line 721 "CtoJava.cweb"
+# line 747 "CtoJava.cweb"
 jobject getInterfaceManager(void) {
   return interfaceManager;
 }
@@ -1114,7 +1131,7 @@ jobject setInterfaceManager(jobject value, JNIEnv *env) {
 
 
 
-# line 588 "CtoJava.cweb"
+# line 614 "CtoJava.cweb"
 /**
   Lookup and cache handles for the MetaForeignReference class
   and also its constructor that takes a string and an array of strings (interfacese and classes
@@ -1135,7 +1152,7 @@ RS(initForeignReferences)(JNIEnv *env)
 }  
 
 
-# line 614 "CtoJava.cweb"
+# line 640 "CtoJava.cweb"
 /**
   Create an instance of a MetaForeignReference object. 
  */
@@ -1153,7 +1170,7 @@ RS(createForeignReference)(JNIEnv *env, jstring id, jstring className, jobjectAr
  return(obj);
 }  
 
-# line 537 "CtoJava.cweb"
+# line 563 "CtoJava.cweb"
 const char *
 RS_JAVA(getSystemProperty)(const char *name,  jboolean *isCopy, JNIEnv *env)
 {
@@ -1190,7 +1207,7 @@ fprintf(stderr, "Can't find class java.lang.System\n");fflush(stderr);
 }    
 
 
-# line 1723 "CtoJava.cweb"
+# line 1740 "CtoJava.cweb"
 /*
        Copyright (c) 1998, 1999 The Omega Project for Statistical Computing.
           All rights reserved.

@@ -168,6 +168,30 @@ function(className, ..., .name="", .sigs="", .convert=T)
 }
 
 
+.JNew <- .Alias(.JavaConstructor)
+
+.JClass <-
+function(x, name=NULL)
+{
+ if(is.character(x))
+   .Java("__Evaluator", "findClass", as.character(x), .name = name)
+ else
+   UseMethod(".JClass")
+}
+
+
+.JClass.AnonymousOmegahatReference <-
+function(x, name=NULL)
+{
+  .JClass(x[["className"]], name = name)
+}
+
+.JClass.NamedOmegahatReference <-
+function(x, name = NULL)
+{
+  .JClass(x[["className"]], name = name)
+}
+
 #
 #  Copyright (c) 1998, 1999 The Omega Project for Statistical Computing.
 #       All rights reserved.#

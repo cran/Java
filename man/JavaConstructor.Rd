@@ -1,5 +1,6 @@
 \name{.JavaConstructor}
 \alias{.JavaConstructor}
+\alias{.JNew}
 \title{Create a Java object}
 \description{
  Creates a Java object by calling a constructor from
@@ -9,9 +10,11 @@ session and a reference to it returned.
 One must create and initialize the Java virtual machine 
 before calling this function. See
 \code{\link{.JavaInit}}. 
+\code{.JNew} is a simple alias of \code{.JavaConstructor}.
 }
 \usage{
 .JavaConstructor(className, ..., .name="", .sigs="", .convert=T)
+.JNew(className, ..., .name="", .sigs="", .convert=T)
 }
 \arguments{
   \item{className}{The name of the Java class to be instantiated.
@@ -93,6 +96,8 @@ for this class that returns the lines of text.
  .Java(tmp, "add", b)
  
  f <- .JavaConstructor("GenericFrame", b)
+
+ f <- .JNew("GenericFrame", b)
 }
 \keyword{programming}
 \keyword{interface}

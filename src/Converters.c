@@ -62,7 +62,7 @@ fprintf(stderr, "Converter match #%d %d\n", ctr++, match);fflush(stderr);
        PROTECT(value = NEW_LIST(arrayLength));
        for(i = 0; i < arrayLength ; i++) {
          tmpObject = VMENV GetObjectArrayElement(env, obj, i);
-         LIST_POINTER(value)[i] = tmp->converter(tmpObject, klass, env, tmp);
+         SET_VECTOR_ELT(value, i, tmp->converter(tmpObject, klass, env, tmp));
        }
        UNPROTECT(1);
       } else {
@@ -372,7 +372,7 @@ RS_JAVA(getConverterDescriptions)(USER_OBJECT_ which)
     }
     
     if(d)    
-     CHARACTER_DATA(ans)[i] = COPY_TO_USER_STRING(d);
+     SET_STRING_ELT(ans, i, COPY_TO_USER_STRING(d));
    }
 
   UNPROTECT(1);
@@ -449,13 +449,13 @@ RS_JAVA(PropertyConverter)(jobject obj, jclass type, JNIEnv *env, RSFromJavaConv
   for(i = 0; i < n; i++) {
      jkey = (jstring) VMENV CallObjectMethod(env, enumeration, nextID);
      tmpKey = VMENV GetStringUTFChars(env, jkey, &isCopy);
-     CHARACTER_DATA(names)[i] = COPY_TO_USER_STRING(tmpKey);
+     SET_STRING_ELT(names, i, COPY_TO_USER_STRING(tmpKey));
      if(isCopy) {
        VMENV ReleaseStringUTFChars(env, jkey, tmpKey);
      }
      jval = VMENV CallObjectMethod(env, obj, getPropertyID, jkey);
      tmpKey = VMENV GetStringUTFChars(env, jval, &isCopy);
-     CHARACTER_DATA(ans)[i] = COPY_TO_USER_STRING(tmpKey);
+     SET_STRING_ELT(ans, i, COPY_TO_USER_STRING(tmpKey));
      if(isCopy) {
        VMENV ReleaseStringUTFChars(env, jval, tmpKey);
      }     
@@ -507,7 +507,7 @@ RS_JAVA(registerConverter)(USER_OBJECT_ shandler, USER_OBJECT_ smatcher, USER_OB
   int index;
   
   if(IS_CHARACTER(shandler)) {
-    char *tmp1 = strdup(CHAR_DEREF(CHARACTER_DATA(shandler)[0]));
+    char *tmp1 = strdup(CHAR_DEREF(STRING_ELT(shandler, 0)));
     DL_FUNC m1 =  R_FindSymbol(tmp1, "");
       if(m1 == NULL) {
            /* Can't free tmp here! */
@@ -522,7 +522,7 @@ RS_JAVA(registerConverter)(USER_OBJECT_ shandler, USER_OBJECT_ smatcher, USER_OB
   }
   
   if(IS_CHARACTER(smatcher)) {
-    char *tmp = strdup(CHAR_DEREF(CHARACTER_DATA(smatcher)[0]));
+    char *tmp = strdup(CHAR_DEREF(STRING_ELT(smatcher, 0)));
     DL_FUNC m =  R_FindSymbol(tmp, "");
       if(m == NULL) {
            /* Can't free tmp here! */
@@ -548,11 +548,11 @@ RS_JAVA(registerConverter)(USER_OBJECT_ shandler, USER_OBJECT_ smatcher, USER_OB
                 (int) INTEGER_DATA(smatcher)[0]
        ERROR;
     }
-     klass = VMENV FindClass(env, CHAR_DEREF(CHARACTER_DATA(suserData)[0]));
+     klass = VMENV FindClass(env, CHAR_DEREF(STRING_ELT(suserData, 0)));
      userData =  (void *) klass;  
   }
 
-  description = strdup(CHAR_DEREF(CHARACTER_DATA(sdescription)[0]));
+  description = strdup(CHAR_DEREF(STRING_ELT(sdescription, 0)));
 
   
   addFromJavaConverterInfo(match, handler, autoArray, userData, description, &index);
@@ -634,7 +634,7 @@ RS_JAVA(removeConverter)(USER_OBJECT_ id, USER_OBJECT_ fromJava, USER_OBJECT_ us
   char *desc = NULL;
 
    if(LOGICAL_DATA(useDescription)[0]) {
-     desc = CHAR_DEREF(CHARACTER_DATA(id)[0]);       
+     desc = CHAR_DEREF(STRING_ELT(id, 0));       
    } else
      which = INTEGER_DATA(id)[0];
   
@@ -652,7 +652,7 @@ RS_JAVA(removeConverter)(USER_OBJECT_ id, USER_OBJECT_ fromJava, USER_OBJECT_ us
          PROTECT(names = NEW_CHARACTER(1));
            tmp = fromJavaConverterDescription(el);
            if(tmp != NULL)
-             CHARACTER_DATA(names)[0] = COPY_TO_USER_STRING(tmp);
+             SET_STRING_ELT(names, 0, COPY_TO_USER_STRING(tmp));
            SET_NAMES(ans, names);
          UNPROTECT(1);
        free(el);

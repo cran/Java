@@ -47,7 +47,7 @@ RS_JAVA(functionConverterMatch)(jobject obj, jclass type, JNIEnv *env, RSFromJav
     /* Get the matching function from the user data. */
     /* Have to handle a closure that does both conversion and matching! */  
   functions = (USER_OBJECT_)  (converter->userData);
-  fun = LIST_POINTER(functions)[MatchFunction];
+  fun = VECTOR_ELT(functions, MatchFunction);
 
   ans = RS_JAVA(callRConverterFunction)(fun, obj, type, env, converter, MatchFunction);
   ok = LOGICAL_DATA(ans)[0];
@@ -65,7 +65,7 @@ RS_JAVA(setFunctionConverter)(USER_OBJECT_ funs, USER_OBJECT_ description, USER_
  R_PreserveObject(funs);
 
  if(GET_LENGTH(description))
-   desc = CHAR_DEREF(CHARACTER_DATA(description)[0]);
+   desc = CHAR_DEREF(STRING_ELT(description, 0));
  if(desc && desc[0])
     desc = strdup(desc);
 
@@ -87,7 +87,7 @@ RS_JAVA(RfunctionConverter)(jobject obj, jclass type, JNIEnv *env, RSFromJavaCon
   USER_OBJECT_ ans;
   
   functions = (USER_OBJECT_)  (converter->userData);
-  fun = LIST_POINTER(functions)[ConverterFunction];
+  fun = VECTOR_ELT(functions, ConverterFunction);
   ans = RS_JAVA(callRConverterFunction)(fun, obj, type, env, converter, ConverterFunction);
 
   return(ans);
@@ -107,17 +107,17 @@ RS_JAVA(callRConverterFunction)(USER_OBJECT_ fun, jobject obj, jclass type, JNIE
   const char *klassName;
     /* Now create the R arguments to the matching function. */  
   PROTECT(args = NEW_LIST(2));
-  VECTOR(args)[0] = anonymousAssign(env, obj, type);
+  SET_VECTOR_ELT(args, 0, anonymousAssign(env, obj, type));
   PROTECT(rclassName = NEW_CHARACTER(1));
     
      tmp = get_object_class_name(env, obj);
      klassName = VMENV GetStringUTFChars(env, tmp, &isCopy);
-     CHARACTER_DATA(rclassName)[0] = COPY_TO_USER_STRING(klassName);    
+     SET_STRING_ELT(rclassName, 0, COPY_TO_USER_STRING(klassName));    
      if(isCopy) {
        VMENV ReleaseStringUTFChars(env, tmp, klassName);
      }
   
-    VECTOR(args)[1] = rclassName;
+    SET_VECTOR_ELT(args, 1, rclassName);
   
    PROTECT(call = RJava(createCall)(fun, args));
     ans = eval(call, R_GlobalEnv);

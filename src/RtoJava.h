@@ -12,7 +12,7 @@ typedef enum {FALSE, TRUE}  boolean;
 extern void R_PreserveObject(SEXP object);
 extern void R_ReleaseObject(SEXP object);
 
-#define GET_MODE(x) (x)->sxpinfo.type
+#define GET_MODE(x) TYPEOF(x)
 
 /* some defines conflict with with bool.h, included by jni.h; we trust
    & believe we don't need the defines in there, and suppress its loading */
@@ -22,7 +22,7 @@ extern void R_ReleaseObject(SEXP object);
 
 
 
-# line 553 "RtoJava.cweb"
+# line 558 "RtoJava.cweb"
 #define IS_S_ENVIRONMENT (env == getJNIEnv())
 
 #define END_MESSAGE )
@@ -30,7 +30,7 @@ extern void R_ReleaseObject(SEXP object);
 
 
 
-# line 573 "RtoJava.cweb"
+# line 578 "RtoJava.cweb"
 #define CATCH_EXCEPTION s_catch_exception(TRUE)
 #define CLEAR_EXCEPTION s_catch_exception(FALSE);
 
@@ -51,24 +51,24 @@ USER_OBJECT_
 s_from_java_basic(JNIEnv *env, void *java_object, const char *dataType,
                     boolean catch, boolean checkForReference);
 
-# line 411 "RtoJava.cweb"
+# line 416 "RtoJava.cweb"
 USER_OBJECT_ asOmegaReferenceUserObject(JNIEnv *env, jobject omegaObject);
 
-# line 479 "RtoJava.cweb"
+# line 484 "RtoJava.cweb"
 USER_OBJECT_ createUserReferenceObject(JNIEnv *env, const char *SclassName, jstring value, jstring className);
 
 
-# line 586 "RtoJava.cweb"
+# line 591 "RtoJava.cweb"
 extern boolean s_catch_exception(boolean asError);
 
 
-# line 706 "RtoJava.cweb"
+# line 711 "RtoJava.cweb"
 USER_OBJECT_ createRAnonymousReference(USER_OBJECT_ obj);
 
-# line 735 "RtoJava.cweb"
+# line 740 "RtoJava.cweb"
 char *javaReferenceSignature(USER_OBJECT_ obj, int checkArray);
 
-# line 795 "RtoJava.cweb"
+# line 800 "RtoJava.cweb"
 int IS(USER_OBJECT_ obj, const char * const name);
 
 

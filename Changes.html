@@ -1,24 +1,107 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html> <head>
-<title></title>
+<title>Change history for R-Java Omegahat Interface</title>
+<link rel=stylesheet href="OmegaTech.css" >
 </head>
 
 <body>
-<h1></h1>
-<h3>.51</h3>
+<h1>Change history for R-Java Omegahat Interface</h1>
+(Old versions can be downloaded by clicking on the
+link in the section title for that version.)
+
+
+<h3><a href="Java_0.54.tar.gz">Version 0.54</a></h3>
 <dl>
-  <li> Recognize the Blackdown 1.2.2 JDK in the configuration.
-      <br>
-        Thanks to Tony Rossini and Friedrich Leisch.
-  <li> Added more checks to determine if the JVM had been initialized
-      before calling <code>.JavaConstructor</code> and friends.<br>
-       Thanks to Friedrich Leisch.
+  <dt>
+  <li> Now works with the new Generational Garbage Collection
+      systems introduced in the development branch of R.
+  <dd> This compiles with 1.1.0 and 1.2.0.
 </dl>
 
+<h3><a href="Java_0.53.tar.gz">Version .53</a></h3>
+<dl>
+  <dt>
+  <li> Introduced
+      <a href="http://www.omegahat.org/RSJava/man/Java/html/JNew.html"><code>.JNew</code></a>
+      <a href="http://www.omegahat.org/RSJava/man/Java/html/JClass.html"><code>.JClass</code></a>      
+      <a href="http://www.omegahat.org/RSJava/man/Java/html/getMethods.html"><code>getJavaMethods</code></a>,
+      <a href="http://www.omegahat.org/RSJava/man/Java/html/getMethods.html"><code>getJavaConstuctors</code></a>
+  <dd>
+  <dt>
+  <li> In the event of <code>.JavaInit()</code> failing because the
+      manager class was not found, the virtual
+      machine is terminated.
+  <dd>
+      The intent is to allow it be restarted with
+       different arguments to <code>.JavaInit()</code>.
+      However, this is not usually possible as most
+       JVM implementations only allow one call to
+      <code>JNI_CreateJavaVM</code>. However, the restart mechanism
+       is in place in our code.
+
+  <dt>
+  <li> An EvaluatorManager is now created and registered.
+  <dd> This means that
+        <a href="http://www.omegahat.org/api/org/omegahat/Environment/Tools/FileLocator/FileLocator.html#findFile(java.lang.String)">findFile</a> will work correctly
+      and the environment behaves more like the interactive
+      Omegahat environment.
+      <br>
+       Thanks to <a href="mailto:kademan@phz.com">Ed Kademan's</a>
+      <a href="http://www.omegahat.org/bugs/Interfaces-fixed?id=64;user=guest">bug report</a>.
+
+  <dt>
+  <li> Set some of the Java System properties in <a
+      href="">.javaConfig</a>
+      to override some of the properties in OmegaOptions (in the
+      Environment.jar file).
+  <dd> The new ones are
+       <code>OMEGA_HOME</code> and <code>OmegaSearchPath</code>.
+        This makes the file location within Environment.jar work.
+      
+  <dt>
+  <li> Fixed the installation's detection of the version
+       to handle different string values.
+  <dd> Thanks to <a href="mailto:kademan@phz.com">Ed Kademan's</a>
+         <a href="http://www.omegahat.org/bugs/Interfaces-fixed?id=63;user=guest">bug report</a>.
+</dl>
+
+<h3><a href="Java_0.52.tar.gz">Version .52</a></h3>
+<dl>
+  <dt>
+  <li> Added the --enable-force argument to the configure script.
+  <dd> This allows the configuration to ignore unrecognized
+       JVMs or incorrect versions.
+      <p>
+       Motivated by <a href="mailto:kademan@phz.com">Ed Kademan's</a>
+      <a href="http://www.omegahat.org/bugs/Interfaces-fixed?id=63;user=guest">bug report</a>.
+</dl>
+
+<h3><a href="Java_0.51.tar.gz">Version .51</a></h3>
+<dl>
+  <dt>
+        <li> Recognize the Blackdown 1.2.2 JDK in the configuration.
+  <dd>
+        Thanks to <a href="rossini@biostat.washington.edu">Tony Rossini</a> and
+          <a href="mailto:Friedrich.Leisch@ci.tuwien.ac.at">Friedrich Leisch.</a>
+  <dt>
+  <li> Added more checks to determine if the JVM had been initialized
+      before calling <code>.JavaConstructor</code> and friends.<br>
+  <dd>       Thanks to Friedrich Leisch.
+</dl>
+
+<h3><a href="Java_0.5.tar.gz">Version .50</a></h3>
+<dl>
+  <dt>
+  <li>Initial release for R.
+  <dd>
+</dl> 
 
 <hr>
-<address></address>
+<address>
+<a href="http://cm.bell-labs.com/stat/duncan">Duncan Temple Lang</a>
+<a href="mailto:duncan@research.bell-labs.com">&lt;duncan@research.bell-labs.com&gt;</a>
+</address>
 <!-- hhmts start -->
-Last modified: Fri Jul 28 08:00:46 EDT 2000
+Last modified: Mon Aug 14 08:35:36 EDT 2000
 <!-- hhmts end -->
 </body> </html>

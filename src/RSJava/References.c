@@ -1,11 +1,11 @@
 
-# line 184 "References.cweb"
+# line 182 "References.cweb"
 #include "References.h"
 #include "JNIUtils.h"
 #include "ErrorHandling.h"
 
 
-# line 108 "References.cweb"
+# line 106 "References.cweb"
 jclass    OmegaNamedReferenceClass;
 jclass    OmegaAnonymousReferenceClass;
 jmethodID ReferenceNameMethodID, ReferenceClassNameMethodID;
@@ -18,7 +18,7 @@ static jmethodID namedReferenceConstructorID,
 #define ANONYMOUS_REFERENCE_CLASSNAME "org/omegahat/Interfaces/NativeInterface/AnonymousReference"
 #define BASE_REFERENCE_CLASSNAME "org/omegahat/Interfaces/NativeInterface/InterfaceReference"
 
-# line 56 "References.cweb"
+# line 54 "References.cweb"
 jobject
 createOmegaReference(JNIEnv *env, const char *name, const char *db, java_type type)
 {
@@ -55,7 +55,7 @@ createOmegaReference(JNIEnv *env, const char *name, const char *db, java_type ty
 }
 
 
-# line 131 "References.cweb"
+# line 129 "References.cweb"
 int
 initReferenceClasses(JNIEnv *env)
 {
@@ -109,7 +109,7 @@ return(1);
 
 
 
-# line 190 "References.cweb"
+# line 188 "References.cweb"
 /*
        Copyright (c) 1998, 1999 The Omega Project for Statistical Computing.
           All rights reserved.

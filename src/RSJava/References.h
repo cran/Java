@@ -4,29 +4,27 @@
 
 #include "CtoJava.h"
 
-typedef enum { NAMED, ANONYMOUS } OmegaReferenceType;
-
-# line 102 "References.cweb"
+# line 100 "References.cweb"
 extern jclass    OmegaNamedReferenceClass;
 extern jclass    OmegaAnonymousReferenceClass;
 extern jmethodID ReferenceNameMethodID, ReferenceClassNameMethodID;
 
 
-# line 28 "References.cweb"
+# line 26 "References.cweb"
 #ifdef __cplusplus
 extern "C" {
 #endif
-# line 51 "References.cweb"
+# line 49 "References.cweb"
 jobject createOmegaReference(JNIEnv *env, const char *name, const char *db, java_type type);
 
-# line 122 "References.cweb"
+# line 120 "References.cweb"
 int initReferenceClasses(JNIEnv *env);
 
-# line 32 "References.cweb"
+# line 30 "References.cweb"
 #ifdef __cplusplus
 }
 #endif
-# line 190 "References.cweb"
+# line 188 "References.cweb"
 /*
        Copyright (c) 1998, 1999 The Omega Project for Statistical Computing.
           All rights reserved.
@@ -328,6 +326,6 @@ int initReferenceClasses(JNIEnv *env);
                             END OF TERMS AND CONDITIONS
 */
 
-# line 37 "References.cweb"
+# line 35 "References.cweb"
 #endif
 

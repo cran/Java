@@ -34,8 +34,8 @@ Java_org_omegahat_R_Java_RManualFunctionActionListener_actionPerformed(JNIEnv *e
        */
     e = allocVector(LANGSXP, 2);
     PROTECT(e);
-    CAR(e) = rref;
-    CAR(CDR(e)) = arg;
+    SETCAR(e, rref);
+    SETCAR(CDR(e), arg);
 
       /* Evaluate the call to the R function.
          Ignore the return value.
@@ -61,7 +61,7 @@ getREventCommand(jobject ev, JNIEnv *env)
  jstr = VMENV CallObjectMethod(env, ev, mid);
  tmp = VMENV GetStringUTFChars(env, jstr, &isCopy);
  PROTECT(ans = NEW_CHARACTER(1));
- CHARACTER_DATA(ans)[0] = COPY_TO_USER_STRING(tmp);
+ SET_STRING_ELT(ans, 0, COPY_TO_USER_STRING(tmp));
  if(isCopy)
    VMENV ReleaseStringUTFChars(env, jstr, tmp);
  UNPROTECT(1);
@@ -84,7 +84,7 @@ RFunctionConverter(USER_OBJECT_ obj, jclass targetClass, java_type type, char *s
    fprintf(stderr, "Converting R object to %s\n", signature);fflush(stderr);
 */   
     klass = VMENV FindClass(env, "org/omegahat/R/Java/RFunctionActionListener");
-    rrefName =   CHAR_DEREF(CHARACTER_DATA(LIST_POINTER(obj)[1])[0]);
+    rrefName =   CHAR_DEREF(STRING_ELT(VECTOR_ELT(obj, 1), 0));
 
     arg = VMENV NewStringUTF(env, rrefName);
     constructor = VMENV GetMethodID(env, klass, "<init>", "(Ljava/lang/String;)V");

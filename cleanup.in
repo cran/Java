@@ -10,3 +10,10 @@ cd @R_PACKAGE_DIR@/libs/
 if test ! -f libJava.so ; then
   ln -s Java.so libJava.so
 fi
+
+# 
+# If we wanted to extract the (startup) scripts from the Environment.jar
+# we would un-jar them here.
+
+# cd ..
+# $JAR xvf org/omegahat/Jars/Environment.jar org/omegahat/Environment/Scripts

@@ -56,39 +56,39 @@ RS_JAVA(MethodConverter)(jobject obj, jclass type, JNIEnv *env, RSFromJavaConver
  PROTECT(ans = NEW_LIST(numSlots));
  PROTECT(names = NEW_CHARACTER(numSlots));
  
- LIST_POINTER(ans)[i] = NEW_CHARACTER(1);
+ SET_VECTOR_ELT(ans, i, NEW_CHARACTER(1));
  jval = VMENV CallObjectMethod(env, obj, mids->getName);
  tmp = VMENV GetStringUTFChars(env, jval, &isCopy);  
- CHARACTER_DATA(LIST_POINTER(ans)[i])[0] = COPY_TO_USER_STRING(tmp);
+ SET_STRING_ELT(VECTOR_ELT(ans, i), 0, COPY_TO_USER_STRING(tmp));
  if(isCopy)
    VMENV ReleaseStringUTFChars(env, jval, tmp);
- CHARACTER_DATA(names)[i] = COPY_TO_USER_STRING("name");
+ SET_STRING_ELT(names, i, COPY_TO_USER_STRING("name"));
  i++;
 
- LIST_POINTER(ans)[i] = NEW_CHARACTER(1);
+ SET_VECTOR_ELT(ans, i, NEW_CHARACTER(1));
  klass = VMENV CallObjectMethod(env, obj, mids->getClass);
  tmp = getClassName(env, klass, &isCopy);
- CHARACTER_DATA(LIST_POINTER(ans)[i])[0] = COPY_TO_USER_STRING(tmp);
- CHARACTER_DATA(names)[i] = COPY_TO_USER_STRING("Declaring class"); 
+ SET_STRING_ELT(VECTOR_ELT(ans, i), 0, COPY_TO_USER_STRING(tmp));
+ SET_STRING_ELT(names, i, COPY_TO_USER_STRING("Declaring class")); 
  i++;
 
 
  jsig = VMENV CallObjectMethod(env, obj, mids->getParameters);
  n = VMENV GetArrayLength(env, jsig);
- LIST_POINTER(ans)[i] = NEW_CHARACTER(n);
+ SET_VECTOR_ELT(ans, i, NEW_CHARACTER(n));
  for(k = 0; k < n ; k++) {
    jobj = VMENV GetObjectArrayElement(env, jsig, k);
    tmp = getClassName(env, jobj, &isCopy);
-   CHARACTER_DATA(LIST_POINTER(ans)[i])[k] = COPY_TO_USER_STRING(tmp);
+   SET_STRING_ELT(VECTOR_ELT(ans, i), k, COPY_TO_USER_STRING(tmp));
  }
- CHARACTER_DATA(names)[i] = COPY_TO_USER_STRING("Parameters");    
+ SET_STRING_ELT(names, i, COPY_TO_USER_STRING("Parameters"));    
  i++;
 
  
- LIST_POINTER(ans)[i] = NEW_INTEGER(1);
+ SET_VECTOR_ELT(ans, i, NEW_INTEGER(1));
  modifier = VMENV CallIntMethod(env, obj, mids->getModifiers);
- INTEGER_DATA(LIST_POINTER(ans)[i])[0] = modifier;
- CHARACTER_DATA(names)[i] = COPY_TO_USER_STRING("Modifiers");
+ INTEGER_DATA(VECTOR_ELT(ans, i))[0] = modifier;
+ SET_STRING_ELT(names, i, COPY_TO_USER_STRING("Modifiers"));
  {
       /* Now get the string that represents the modifier value.
          Do this by calling the static method toString(int)
@@ -105,9 +105,9 @@ RS_JAVA(MethodConverter)(jobject obj, jclass type, JNIEnv *env, RSFromJavaConver
 
    if(jmodName != NULL_JAVA_OBJECT) {
       modName = VMENV GetStringUTFChars(env, jmodName, &isCopy);   
-      CHARACTER_DATA(tmpr)[0] = COPY_TO_USER_STRING(modName);
+      SET_STRING_ELT(tmpr, 0, COPY_TO_USER_STRING(modName));
     }
-    SET_NAMES(LIST_POINTER(ans)[i], tmpr);
+    SET_NAMES(VECTOR_ELT(ans, i), tmpr);
     UNPROTECT(1);
  }
  i++;
@@ -115,23 +115,23 @@ RS_JAVA(MethodConverter)(jobject obj, jclass type, JNIEnv *env, RSFromJavaConver
 
  jsig = VMENV CallObjectMethod(env, obj, mids->getExceptions);
  n = VMENV GetArrayLength(env, jsig);
- LIST_POINTER(ans)[i] = NEW_CHARACTER(n);
+ SET_VECTOR_ELT(ans, i, NEW_CHARACTER(n));
  for(k = 0; k < n ; k++) {
    jobj = VMENV GetObjectArrayElement(env, jsig, k);
    tmp = getClassName(env, jobj, &isCopy);
-   CHARACTER_DATA(LIST_POINTER(ans)[i])[k] = COPY_TO_USER_STRING(tmp);
+   SET_STRING_ELT(VECTOR_ELT(ans, i), k, COPY_TO_USER_STRING(tmp));
  }
- CHARACTER_DATA(names)[i] = COPY_TO_USER_STRING("Exceptions");    
+ SET_STRING_ELT(names, i, COPY_TO_USER_STRING("Exceptions"));    
  i++;
 
  
 
  if(isMethod) {
-   LIST_POINTER(ans)[i] = NEW_CHARACTER(1);
+   SET_VECTOR_ELT(ans, i, NEW_CHARACTER(1));
    klass = VMENV CallObjectMethod(env, obj, mids->getReturnType);
    tmp = getClassName(env, klass, &isCopy);
-   CHARACTER_DATA(LIST_POINTER(ans)[i])[0] = COPY_TO_USER_STRING(tmp);
-   CHARACTER_DATA(names)[i] = COPY_TO_USER_STRING("Return type");    
+   SET_VECTOR_ELT(VECTOR_ELT(ans, i), 0, COPY_TO_USER_STRING(tmp));
+   SET_STRING_ELT(names, i, COPY_TO_USER_STRING("Return type"));    
    i++;
  }
  

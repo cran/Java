@@ -24,6 +24,7 @@ extern "C" {
   #ifdef length
   #undef length
   #endif
+
   #ifdef GET_LENGTH
   #undef GET_LENGTH
   #define GET_LENGTH(x) Rf_length(x)
@@ -32,6 +33,18 @@ extern "C" {
   #ifdef append
   #undef append
   #endif
+
+  #include "Rversion.h"
+  #if R_VERSION < R_Version(1, 2, 0)
+  #define STRING_ELT(x,i)   STRING(x)[i]
+  #define VECTOR_ELT(x,i)   VECTOR(x)[i]
+  #define SET_STRING_ELT(x,i,v)     (STRING(x)[i]=(v))
+  #define SET_VECTOR_ELT(x,i,v)     (VECTOR(x)[i]=(v))
+
+  #define SETCAR(x,v)  (CAR(x) = v)
+  #endif
+
+
 
   #endif
 

@@ -9,6 +9,10 @@ dnl Also, generate a suitable value for .javaConfig.
 
 AC_INIT(DESCRIPTION)
 
+
+AC_ARG_ENABLE(force,continues installation even when an incorrect Java distribution is found,
+               FORCE="yes" ; echo "forcing installation")
+
  # the current directory which is Java/
  # so that we can insert this into the 
  # makefiles in the different sub-directories
@@ -17,6 +21,9 @@ AC_INIT(DESCRIPTION)
 TOP=`pwd`
 AC_SUBST(TOP)
 
+if test -z "${R_HOME}" ; then
+ R_HOME=`R RHOME`
+fi
 
 dnl Older versions of R (i.e. not the 1.2.0 development 
 dnl version) don't have the change to INSTALL that exports
@@ -61,7 +68,7 @@ AC_PATH_PROGS(JAVA,java,,${JAVA_LOCATIONS})
 
     dnl did we find it? If so, compute JAVA_HOME.
  if test -n "${JAVA}" ; then
-   JAVA_HOME=`${JAVA} vendor -h`
+   JAVA_HOME=`${JAVA} -classpath . vendor -h`
  fi
 
 else
@@ -84,11 +91,15 @@ or set the environment variable JAVA_HOME before this configure script is run."
 fi
 
 
-JAVA_MAJOR_VERSION=`${JAVA} vendor -vv`
+JAVA_MAJOR_VERSION=`${JAVA} -classpath . vendor -vv`
 if test ${JAVA_MAJOR_VERSION} -lt 2 ; then
  echo "Need Java 1.2 virtual machine to run Omegahat effectively."
  echo "${JAVA} is not 1.2 but `${JAVA} vendor java.version`"
- exit 1;
+ if test -n "${FORCE}" ; then 
+  echo "proceeding in spite of unexpected version"
+ else
+    exit 1;
+ fi
 fi
 
 
@@ -102,9 +113,12 @@ AC_PATH_PROGS(JAVAH,javah,,${JAVA_HOME}/bin)
 
  dnl Now, compute who built this particular JVM (i.e. Sun, IBM, 
  dnl Blackdown, etc). This helps us tell what libraries to link against, etc. 
-VENDOR=`${JAVA} vendor -v`
+VENDOR=`${JAVA} -classpath .  vendor -v`
 OSNAME=`uname`
-DYN_LOAD_LOCAL=TRUE
+
+ dnl In general, this should be false.
+ dnl as other packages may need the JVM.
+DYN_LOAD_LOCAL=FALSE
 
 if test "${VENDOR}" = "IBM" ; then
     # For IBM2-13 JDK
@@ -122,7 +136,11 @@ elif test "${VENDOR}" = "Blackdown Java-Linux Team" ; then
   JAVA_LIBS="-ljvm" ;
 else 
  echo "Sorry. We can currently only configure this package for IBM, Blackdown or Sun's Java implementation"
- exit 1;
+ if test -n "${FORCE}" ; then
+   echo "Proceeding in spite of unexpected vendor."
+ else
+   exit 1;
+ fi
 fi
 
 dnl What one needs for IBM.
@@ -131,14 +149,14 @@ dnl JNI_LIB_DIRS="${JAVA_HOME}/jre/bin/classic"
 dnl For the Blackdown JDK.
 dnl JNI_LIB_DIRS="${JAVA_HOME}/jre/lib/i386 ${JAVA_HOME}/jre/lib/i386/native_threads ${JAVA_HOME}/jre/lib/i386/classic"
 
-dnl JNI_LIB_DIRS=`${JAVA} vendor -l`
-dnl JDK_PLATFORM=`${JAVA} vendor -o`
+dnl JNI_LIB_DIRS=`${JAVA} -classpath . vendor -l`
+dnl JDK_PLATFORM=`${JAVA} -classpath . vendor -o`
 
 dnl We use the jniBashParameters class to compute the JNI_LIBS, JDK_PLATFORM and JDK_HARDWARE
 
-(LD_LIBRARY_PATH= ; export LD_LIBRARY_PATH; ${JAVA} -DJavaHome=${JAVA_HOME} jniBashParameters config.jni)
+(LD_LIBRARY_PATH= ; export LD_LIBRARY_PATH; ${JAVA} -classpath . -DJavaHome=${JAVA_HOME} jniBashParameters config.jni)
    # now read the results from the jniBashParameters output
-. config.jni 
+. ./config.jni 
 
 JNI_LIB_DIRS=${JNI_LIBS}
 
@@ -160,7 +178,7 @@ dnl Java properties file and query its contents.
 if test -n "${USE_R_CONFIGURATION}" ; then 
 
  if test -f ${R_HOME}/etc/Makeconf  ; then
-    ${JAVA} Rconfig ${R_HOME}/etc/Makeconf > config.R
+    ${JAVA} -classpath . Rconfig ${R_HOME}/etc/Makeconf > config.R
     . ./config.R
     echo "CC from R configuration: ${CC}"
  fi
